@@ -2,37 +2,65 @@
 
 ## about
 
-pwdgen is a simple password generator written in Go. It generates passwords with a length of 16 characters by default. The characters used are all alphanumeric characters and the special characters `!@#$%^&*()_+-=[]{}|;:,.<>?` (without the quotes).
+pwdgen is a simple password generator written in Go. It generates passwords with a length of 20 characters by default.
 
-pwdgen -h
-
-```bash
-A password generator cli with high entropy
-
-Usage:
-  password [flags]
-
-Flags:
-  -h, --help       help for password
-  -s, --size int   size of password (default 16)
-  -S, --specials   add special characters (true/false)
-```
-
-## installation
-
-To install pwdgen, run the following command:
-
-```bash
-curl -OL https://github.com/rafaelperoco/pwdgen/releases/download/v1.0.0/pwdgen && chmod +x pwdgen && sudo mv pwdgen /usr/local/bin
-```
+## install
+  
+  ```bash
+  curl -OL https://github.com/rafaelperoco/pwdgen/releases/download/v0.1.0/pwdgen_0.1.0_linux_amd64.tar.gz
+  tar -xvf pwdgen_0.1.0_linux_amd64.tar.gz
+  sudo mv pwdgen /usr/local/bin
+  ```
 
 ## usage
+```text
+A CLI tool to generate passwords with entropy and complexity
 
-To generate a password, run the following command:
-example:
+Usage:
+  pwdgen [flags]
 
-```bash
-pwdgen -s 32 -S true
+Flags:
+  -e, --exclude string   exclude characters from the password
+  -h, --help             help for pwdgen
+  -n, --length int       length of the password (default 20)
+  -l, --letters          use letters and numbers
+  -s, --special          use letters, numbers and special characters
 ```
 
-This will generate a password with a length of 32 characters and will include special characters.
+## Examples
+
+```bash
+pwdgen
+```
+  
+  ```bash
+pwdgen -n 10
+```
+  
+  ```bash
+pwdgen -l
+```
+  
+  ```bash
+pwdgen -s
+```
+  
+  ```bash
+pwdgen -e 0oO1l
+```
+
+```bash
+pwdgen -n 10 -l -e 0oO1l
+```
+
+## License
+
+MIT ©
+
+## Author
+
+Rafael Peroco
+
+## Contributing
+
+Feel free to open issues and pull requests.
