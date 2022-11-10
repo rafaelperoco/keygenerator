@@ -1,10 +1,10 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
 	"os"
-	"time"
+	"math/big"
 
 	"github.com/spf13/cobra"
 )
@@ -44,41 +44,40 @@ func main() {
 }
 
 func generatePassword() string {
-	rand.Seed(time.Now().UnixNano())
+	var password string
+	var characters []rune
 
-	var password []rune
-	if lettersFlag {
-		password = make([]rune, lengthFlag)
-		for i := range password {
-			password[i] = letters[rand.Intn(len(letters))]
-		}
-	} else if specialFlag {
-		password = make([]rune, lengthFlag)
-		for i := range password {
-			password[i] = lettersAndSpecial[rand.Intn(len(lettersAndSpecial))]
-		}
+	if lettersFlag && specialFlag {
+		characters = lettersAndSpecial
+	} else if lettersFlag {
+		characters = letters
 	} else {
-		password = make([]rune, lengthFlag)
-		for i := range password {
-			password[i] = lettersAndSpecial[rand.Intn(len(lettersAndSpecial))]
-		}
+		characters = lettersAndSpecial
 	}
-	return string(password)
+
+	for i := 0; i < lengthFlag; i++ {
+		char, _ := rand.Int(rand.Reader, big.NewInt(int64(len(characters))))
+		password += string(characters[char.Int64()])
+	}
+
+	return password
 }
 
 func excludeCharacters(password string) string {
-	var result string
-	for _, c := range password {
-		if !contains(excludeFlag, c) {
-			result += string(c)
+	var newPassword string
+
+	for _, char := range password {
+		if !containsRune(excludeFlag, char) {
+			newPassword += string(char)
 		}
 	}
-	return result
+
+	return newPassword
 }
 
-func contains(s string, c rune) bool {
-	for _, r := range s {
-		if r == c {
+func containsRune(s string, r rune) bool {
+	for _, a := range s {
+		if a == r {
 			return true
 		}
 	}
