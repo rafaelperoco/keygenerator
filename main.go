@@ -3,20 +3,20 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
-	"os"
 	"math/big"
+	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 var (
-	letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	letters           = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	lettersAndSpecial = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}|:<>?`~-=[]\\;',./")
-
-	lettersFlag bool
-	specialFlag bool
-	lengthFlag  int
-	excludeFlag string
+	lettersFlag       bool
+	specialFlag       bool
+	lengthFlag        int
+	excludeFlag       string
 )
 
 func main() {
@@ -25,10 +25,16 @@ func main() {
 		Short: "A CLI tool to generate passwords with entropy and complexity",
 		Long:  `A CLI tool to generate passwords with entropy and complexity`,
 		Run: func(cmd *cobra.Command, args []string) {
+			if lettersFlag && specialFlag {
+				fmt.Println("Error: -l (letters) and -s (special) flags cannot be used together.")
+				os.Exit(1)
+			}
+
+			password := generatePassword(lengthFlag)
 			if excludeFlag != "" {
-				fmt.Println(excludeCharacters(generatePassword()))
+				fmt.Println(excludeCharacters(password))
 			} else {
-				fmt.Println(generatePassword())
+				fmt.Println(password)
 			}
 		},
 	}
@@ -43,36 +49,40 @@ func main() {
 	}
 }
 
-func generatePassword() string {
-	var password string
+func generatePassword(length int) string {
 	var characters []rune
-
-	if lettersFlag && specialFlag {
+	if specialFlag {
 		characters = lettersAndSpecial
-	} else if lettersFlag {
-		characters = letters
 	} else {
-		characters = lettersAndSpecial
+		characters = letters
 	}
 
-	for i := 0; i < lengthFlag; i++ {
-		char, _ := rand.Int(rand.Reader, big.NewInt(int64(len(characters))))
-		password += string(characters[char.Int64()])
+	var password strings.Builder
+	password.Grow(length)
+
+	for i := 0; i < length; i++ {
+		char, err := rand.Int(rand.Reader, big.NewInt(int64(len(characters))))
+		if err != nil {
+			fmt.Println("Error generating random character:", err)
+			continue
+		}
+		password.WriteRune(characters[char.Int64()])
 	}
 
-	return password
+	return password.String()
 }
 
 func excludeCharacters(password string) string {
-	var newPassword string
+	var newPassword strings.Builder
+	newPassword.Grow(len(password))
 
 	for _, char := range password {
 		if !containsRune(excludeFlag, char) {
-			newPassword += string(char)
+			newPassword.WriteRune(char)
 		}
 	}
 
-	return newPassword
+	return newPassword.String()
 }
 
 func containsRune(s string, r rune) bool {
