@@ -58,6 +58,7 @@ func newRootCmd() *cobra.Command {
 	root.AddCommand(newAPIKeyCmd())
 	root.AddCommand(newPINCmd())
 	root.AddCommand(newEntropyCmd())
+	root.AddCommand(newPassphraseCmd())
 
 	return root
 }
