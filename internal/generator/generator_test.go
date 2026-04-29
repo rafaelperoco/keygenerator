@@ -55,8 +55,8 @@ func TestGenerate_RNGFailureAborts(t *testing.T) {
 	if err == nil {
 		t.Fatal("Generate with failing reader returned nil error")
 	}
-	if !strings.Contains(err.Error(), "entropy source failed") {
-		t.Errorf("error = %q, want it to mention 'entropy source failed'", err)
+	if !errors.Is(err, ErrEntropyFailure) {
+		t.Errorf("error = %v, want it to wrap ErrEntropyFailure", err)
 	}
 }
 
@@ -104,6 +104,72 @@ func TestGenerate_DeterministicWithSeededReader(t *testing.T) {
 	}
 	if a != b {
 		t.Errorf("seeded Generate not deterministic: %q vs %q", a, b)
+	}
+}
+
+// TestGenerate_RequiredClassesGuarantee verifies that with class
+// requirements every output contains at least one rune of each required
+// class, over many iterations.
+func TestGenerate_RequiredClassesGuarantee(t *testing.T) {
+	cs, _ := charset.Get("alphanum-symbols-v1")
+	required := charset.ClassLower | charset.ClassUpper | charset.ClassDigit | charset.ClassSymbol
+	for i := range 2000 {
+		out, err := Generate(Request{
+			Charset:         cs,
+			Length:          12,
+			RequiredClasses: required,
+		})
+		if err != nil {
+			t.Fatalf("iter %d: %v", i, err)
+		}
+		var seen charset.Class
+		for _, r := range out {
+			seen |= cs.ClassOf(r)
+		}
+		if seen&required != required {
+			t.Errorf("iter %d: %q has classes %b, want all of %b", i, out, seen, required)
+		}
+	}
+}
+
+// TestGenerate_RequiredClassesNoOpWhenSatisfied confirms that when the
+// charset trivially satisfies the requirements (length much larger than
+// classes), every output already qualifies on the first attempt — i.e.
+// rejection sampling does not corrupt distribution.
+func TestGenerate_RequiredClassesShortLength(t *testing.T) {
+	cs, _ := charset.Get("alphanum-symbols-v1")
+	required := charset.ClassLower | charset.ClassUpper | charset.ClassDigit | charset.ClassSymbol
+	out, err := Generate(Request{Charset: cs, Length: 4, RequiredClasses: required})
+	if err != nil {
+		t.Fatalf("Generate(len=4, all classes): %v", err)
+	}
+	if len([]rune(out)) != 4 {
+		t.Errorf("length = %d, want 4", len([]rune(out)))
+	}
+	var seen charset.Class
+	for _, r := range out {
+		seen |= cs.ClassOf(r)
+	}
+	if seen&required != required {
+		t.Errorf("output %q does not satisfy classes %b: seen %b", out, required, seen)
+	}
+}
+
+// TestGenerate_RequiredClassesUnsatisfiableExhaustsRetries verifies the
+// retry cap fires when the charset is too narrow to ever satisfy.
+// We force this by asking digit-v1 to produce a symbol class.
+func TestGenerate_RequiredClassesUnsatisfiable(t *testing.T) {
+	cs, _ := charset.Get("digit-v1")
+	_, err := Generate(Request{
+		Charset:         cs,
+		Length:          8,
+		RequiredClasses: charset.ClassSymbol,
+	})
+	if err == nil {
+		t.Fatal("Generate with impossible class returned nil error")
+	}
+	if !errors.Is(err, ErrClassExhausted) {
+		t.Errorf("error = %v, want it to wrap ErrClassExhausted", err)
 	}
 }
 
