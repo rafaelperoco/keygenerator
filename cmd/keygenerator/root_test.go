@@ -16,14 +16,16 @@ import (
 
 func baseOptions(stdout, stderr io.Writer) runOptions {
 	return runOptions{
+		commonOpts: commonOpts{
+			stdin:  strings.NewReader(""),
+			stdout: stdout,
+			stderr: stderr,
+			now:    func() time.Time { return time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC) },
+			uuid:   func() (string, error) { return "11111111-2222-4333-8444-555555555555", nil },
+		},
 		Length:         20,
 		CharsetID:      "alphanum-v1",
 		MinEntropyBits: 80,
-		stdin:          strings.NewReader(""),
-		stdout:         stdout,
-		stderr:         stderr,
-		now:            func() time.Time { return time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC) },
-		uuid:           func() (string, error) { return "11111111-2222-4333-8444-555555555555", nil },
 	}
 }
 

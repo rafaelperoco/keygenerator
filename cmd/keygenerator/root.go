@@ -5,9 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/rafaelperoco/keygenerator/internal/audit"
 	"github.com/rafaelperoco/keygenerator/internal/charset"
@@ -16,49 +14,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// runOptions consolidates every CLI flag and the supplied stdin params
-// into a single struct so the runner is unit-testable independent of cobra.
+// runOptions carries every flag for the default `password` subcommand.
 type runOptions struct {
-	Length                int
-	CharsetID             string
-	Exclude               string
-	RequiredClassesSpec   string
-	MinEntropyBits        float64
-	AllowWeak             bool
-	JSON                  bool
-	AuditLogPath          string
-	StdinParams           bool
-	RequireSchemaVersion  int
-	stdin                 io.Reader
-	stdout                io.Writer
-	stderr                io.Writer
-	now                   func() time.Time
-	uuid                  func() (string, error)
+	commonOpts
+	Length              int
+	CharsetID           string
+	Exclude             string
+	RequiredClassesSpec string
+	MinEntropyBits      float64
+	AllowWeak           bool
 }
 
-// stdinRequest mirrors the subset of runOptions exposed via --stdin-params
-// JSON. Sensitive flags (audit-log path) are intentionally not accepted via
-// stdin to keep filesystem effects driven by argv only.
-type stdinRequest struct {
-	Length              *int     `json:"length,omitempty"`
-	CharsetID           *string  `json:"charset_id,omitempty"`
-	Exclude             *string  `json:"exclude,omitempty"`
-	RequiredClasses     *string  `json:"required_classes,omitempty"`
-	MinEntropyBits      *float64 `json:"min_entropy_bits,omitempty"`
-	AllowWeak           *bool    `json:"allow_weak,omitempty"`
-	RequireSchemaVersion *int    `json:"require_schema_version,omitempty"`
+type stdinPasswordRequest struct {
+	Length               *int     `json:"length,omitempty"`
+	CharsetID            *string  `json:"charset_id,omitempty"`
+	Exclude              *string  `json:"exclude,omitempty"`
+	RequiredClasses      *string  `json:"required_classes,omitempty"`
+	MinEntropyBits       *float64 `json:"min_entropy_bits,omitempty"`
+	AllowWeak            *bool    `json:"allow_weak,omitempty"`
+	RequireSchemaVersion *int     `json:"require_schema_version,omitempty"`
 }
 
+// newRootCmd builds the cobra command tree. The root command, when invoked
+// without a subcommand, behaves identically to `keygenerator password` —
+// it shares the same flag set and runner as the password subcommand.
 func newRootCmd() *cobra.Command {
-	opts := &runOptions{
-		stdin:  os.Stdin,
-		stdout: os.Stdout,
-		stderr: os.Stderr,
-		now:    func() time.Time { return time.Now().UTC() },
-		uuid:   func() (string, error) { return audit.NewUUIDv4(nil) },
-	}
+	opts := &runOptions{commonOpts: newCommonOpts()}
 
-	cmd := &cobra.Command{
+	root := &cobra.Command{
 		Use:           "keygenerator",
 		Short:         "Generate auditable random passwords",
 		Long:          longDescription(),
@@ -68,7 +51,33 @@ func newRootCmd() *cobra.Command {
 			return runPassword(*opts)
 		},
 	}
+	addPasswordFlags(root, opts)
 
+	root.AddCommand(newPasswordCmd())
+	root.AddCommand(newSecretCmd())
+	root.AddCommand(newAPIKeyCmd())
+	root.AddCommand(newPINCmd())
+	root.AddCommand(newEntropyCmd())
+
+	return root
+}
+
+func newPasswordCmd() *cobra.Command {
+	opts := &runOptions{commonOpts: newCommonOpts()}
+	cmd := &cobra.Command{
+		Use:           "password",
+		Short:         "Generate a random password from a named charset",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runPassword(*opts)
+		},
+	}
+	addPasswordFlags(cmd, opts)
+	return cmd
+}
+
+func addPasswordFlags(cmd *cobra.Command, opts *runOptions) {
 	cmd.Flags().IntVarP(&opts.Length, "length", "n", 20, "length of the password")
 	cmd.Flags().StringVarP(&opts.CharsetID, "charset", "c", "alphanum-v1",
 		"named charset id ("+strings.Join(charset.IDs(), ", ")+")")
@@ -79,15 +88,7 @@ func newRootCmd() *cobra.Command {
 		"minimum acceptable entropy in bits; 0 disables")
 	cmd.Flags().BoolVar(&opts.AllowWeak, "allow-weak", false,
 		"permit generation below the entropy floor (emits a warning)")
-	cmd.Flags().BoolVar(&opts.JSON, "json", false, "emit a structured JSON record on stdout")
-	cmd.Flags().StringVar(&opts.AuditLogPath, "audit-log", "",
-		"append a redacted JSONL audit record to this file (mode 0600)")
-	cmd.Flags().BoolVar(&opts.StdinParams, "stdin-params", false,
-		"read a JSON request from stdin to populate flags (avoids argv leakage)")
-	cmd.Flags().IntVar(&opts.RequireSchemaVersion, "require-schema-version", 0,
-		"if set, fail unless the output schema version matches this value")
-
-	return cmd
+	addCommonFlags(cmd, &opts.commonOpts)
 }
 
 func longDescription() string {
@@ -98,16 +99,11 @@ automated systems that need verifiable provenance for generated secrets.`
 
 func runPassword(o runOptions) error {
 	if o.StdinParams {
-		req, err := readStdinParams(o.stdin)
+		req, err := readStdinPasswordParams(o.stdin)
 		if err != nil {
 			return fail(ExitInvalidArgs, err)
 		}
-		applyStdin(&o, req)
-	}
-
-	if o.RequireSchemaVersion != 0 && o.RequireSchemaVersion != audit.SchemaVersion {
-		return fail(ExitInvalidArgs, fmt.Errorf("require-schema-version=%d, but binary emits schema %d",
-			o.RequireSchemaVersion, audit.SchemaVersion))
+		applyStdinPassword(&o, req)
 	}
 
 	cs, err := charset.Get(o.CharsetID)
@@ -157,14 +153,7 @@ func runPassword(o runOptions) error {
 		return fail(ExitRNGFailure, err)
 	}
 
-	requestID, err := o.uuid()
-	if err != nil {
-		return fail(ExitRNGFailure, fmt.Errorf("request id: %w", err))
-	}
-
 	out := audit.Output{
-		SchemaVersion:   audit.SchemaVersion,
-		Password:        pw,
 		Length:          o.Length,
 		CharsetID:       cs.ID,
 		CharsetSize:     cs.Size(),
@@ -174,28 +163,10 @@ func runPassword(o runOptions) error {
 		RequiredClasses: policy.ClassesString(requiredClasses),
 		Algorithm:       "crypto/rand+rejection-sampling",
 		Subcommand:      "password",
-		Version:         version,
-		Commit:          commit,
-		BuildDate:       buildDate,
-		RequestID:       requestID,
-		TimestampUTC:    o.now().Format(time.RFC3339Nano),
 		Warnings:        warnings,
 	}
 
-	if o.AuditLogPath != "" {
-		entry := audit.LogFromOutput(out, audit.SHA256Hex(pw))
-		if err := audit.AppendLog(o.AuditLogPath, entry); err != nil {
-			return fail(ExitInvalidArgs, err)
-		}
-	}
-
-	if o.JSON {
-		return writeJSON(o.stdout, out)
-	}
-	if _, err := fmt.Fprintln(o.stdout, pw); err != nil {
-		return fail(ExitRNGFailure, err)
-	}
-	return nil
+	return emit(o.commonOpts, out, pw)
 }
 
 func writeJSON(w io.Writer, out audit.Output) error {
@@ -207,8 +178,8 @@ func writeJSON(w io.Writer, out audit.Output) error {
 	return nil
 }
 
-func readStdinParams(r io.Reader) (stdinRequest, error) {
-	var req stdinRequest
+func readStdinPasswordParams(r io.Reader) (stdinPasswordRequest, error) {
+	var req stdinPasswordRequest
 	dec := json.NewDecoder(r)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&req); err != nil {
@@ -217,7 +188,7 @@ func readStdinParams(r io.Reader) (stdinRequest, error) {
 	return req, nil
 }
 
-func applyStdin(o *runOptions, r stdinRequest) {
+func applyStdinPassword(o *runOptions, r stdinPasswordRequest) {
 	if r.Length != nil {
 		o.Length = *r.Length
 	}
@@ -240,4 +211,3 @@ func applyStdin(o *runOptions, r stdinRequest) {
 		o.RequireSchemaVersion = *r.RequireSchemaVersion
 	}
 }
-
