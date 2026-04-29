@@ -1,0 +1,14 @@
+// Command keygenerator is a CLI for generating auditable random passwords.
+package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	if err := newRootCmd().Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
