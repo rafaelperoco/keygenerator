@@ -53,7 +53,7 @@ are appropriate only when the verifying system enforces strict rate
 limits (banking, hardware tokens) — never as a primary authenticator.`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return runPIN(*opts)
 		},
 	}

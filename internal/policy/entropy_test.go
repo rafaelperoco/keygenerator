@@ -13,13 +13,13 @@ func TestEntropyBits(t *testing.T) {
 		length, size int
 		want         float64
 	}{
-		{20, 62, 20 * math.Log2(62)},  // ~119.08
-		{12, 94, 12 * math.Log2(94)},  // ~78.66
-		{1, 2, 1.0},                   // single bit
-		{0, 62, 0},                    // empty length
-		{20, 1, 0},                    // degenerate charset
-		{20, 0, 0},                    // empty charset
-		{-5, 62, 0},                   // negative length
+		{20, 62, 20 * math.Log2(62)}, // ~119.08
+		{12, 94, 12 * math.Log2(94)}, // ~78.66
+		{1, 2, 1.0},                  // single bit
+		{0, 62, 0},                   // empty length
+		{20, 1, 0},                   // degenerate charset
+		{20, 0, 0},                   // empty charset
+		{-5, 62, 0},                  // negative length
 	}
 	for _, tt := range tests {
 		got := EntropyBits(tt.length, tt.size)

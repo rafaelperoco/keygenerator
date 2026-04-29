@@ -47,7 +47,7 @@ func newRootCmd() *cobra.Command {
 		Long:          longDescription(),
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return runPassword(*opts)
 		},
 	}
@@ -70,7 +70,7 @@ func newPasswordCmd() *cobra.Command {
 		Short:         "Generate a random password from a named charset",
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return runPassword(*opts)
 		},
 	}
@@ -128,14 +128,14 @@ func runPassword(o runOptions) error {
 	if err != nil {
 		return fail(ExitInvalidArgs, err)
 	}
-	if err := policy.ValidateClassesAchievable(cs, o.Length, requiredClasses); err != nil {
-		return fail(ExitClassImpossible, err)
+	if validateErr := policy.ValidateClassesAchievable(cs, o.Length, requiredClasses); validateErr != nil {
+		return fail(ExitClassImpossible, validateErr)
 	}
 
 	bits := policy.EntropyBits(o.Length, cs.Size())
 	var warnings []string
-	if err := policy.EnforceFloor(bits, o.MinEntropyBits, o.AllowWeak); err != nil {
-		return fail(ExitEntropyTooLow, err)
+	if floorErr := policy.EnforceFloor(bits, o.MinEntropyBits, o.AllowWeak); floorErr != nil {
+		return fail(ExitEntropyTooLow, floorErr)
 	}
 	if o.MinEntropyBits > 0 && bits < o.MinEntropyBits && o.AllowWeak {
 		warnings = append(warnings,

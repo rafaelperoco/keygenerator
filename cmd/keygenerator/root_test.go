@@ -307,7 +307,7 @@ func TestRunPassword_AuditLogAppendsAndRedacts(t *testing.T) {
 	}
 	out := decodeJSON(t, stdout.Bytes())
 
-	b, err := os.ReadFile(logPath)
+	b, err := os.ReadFile(logPath) // #nosec G304 -- test temp file
 	if err != nil {
 		t.Fatal(err)
 	}

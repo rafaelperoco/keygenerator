@@ -73,11 +73,11 @@ func TestAppendLog_AppendsJSONL(t *testing.T) {
 		}
 	}
 
-	f, err := os.Open(path)
+	f, err := os.Open(path) // #nosec G304 -- test temp file
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	scanner := bufio.NewScanner(f)
 	count := 0
 	for scanner.Scan() {
@@ -106,7 +106,7 @@ func TestAppendLog_NoPasswordField(t *testing.T) {
 	if err := AppendLog(path, entry); err != nil {
 		t.Fatal(err)
 	}
-	b, err := os.ReadFile(path)
+	b, err := os.ReadFile(path) // #nosec G304 -- test temp file
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +143,7 @@ func TestAppendLog_PreservesExistingContent(t *testing.T) {
 	if err := AppendLog(path, LogEntry{SchemaVersion: SchemaVersion, RequestID: "added"}); err != nil {
 		t.Fatal(err)
 	}
-	b, err := os.ReadFile(path)
+	b, err := os.ReadFile(path) // #nosec G304 -- test temp file
 	if err != nil {
 		t.Fatal(err)
 	}

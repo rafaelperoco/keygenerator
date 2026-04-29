@@ -271,8 +271,8 @@ func TestCapitalizeFirst(t *testing.T) {
 		{"abacus", "Abacus"},
 		{"", ""},
 		{"a", "A"},
-		{"Already", "Already"},  // already capitalized: unchanged
-		{"123word", "123word"},  // doesn't start with letter
+		{"Already", "Already"}, // already capitalized: unchanged
+		{"123word", "123word"}, // doesn't start with letter
 	}
 	for _, tt := range tests {
 		if got := capitalizeFirst(tt.in); got != tt.want {

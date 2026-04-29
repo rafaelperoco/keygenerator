@@ -51,7 +51,7 @@ without padding, which yields a 43-character token suitable for use in
 URLs, HTTP headers, environment variables, and JSON payloads.`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return runSecret(*opts)
 		},
 	}
@@ -105,13 +105,13 @@ func runSecret(o secretOptions) error {
 	secret := o.Prefix + encoded
 
 	out := audit.Output{
-		Length:       len(secret),
-		CharsetID:    "secret-bytes:" + o.Encoding,
-		CharsetSize:  256,
-		EntropyBits:  bits,
-		Algorithm:    "crypto/rand:bytes+" + o.Encoding,
-		Subcommand:   "secret",
-		Warnings:     warnings,
+		Length:      len(secret),
+		CharsetID:   "secret-bytes:" + o.Encoding,
+		CharsetSize: 256,
+		EntropyBits: bits,
+		Algorithm:   "crypto/rand:bytes+" + o.Encoding,
+		Subcommand:  "secret",
+		Warnings:    warnings,
 	}
 	return emit(o.commonOpts, out, secret)
 }

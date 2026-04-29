@@ -12,11 +12,13 @@ import (
 // with mode 0600 if missing and is opened append-only. Writes are
 // flushed before returning. Each record is exactly one line.
 func AppendLog(path string, entry LogEntry) error {
+	// #nosec G304 -- path is user-supplied via --audit-log; opening it
+	// is the documented purpose of this function.
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
 	if err != nil {
 		return fmt.Errorf("audit: open %q: %w", path, err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	b, err := json.Marshal(entry)
 	if err != nil {

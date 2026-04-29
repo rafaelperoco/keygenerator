@@ -51,7 +51,7 @@ contribute zero entropy to the credential.
 Default length 32 base62 characters yields ~190 bits of entropy.`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return runAPIKey(*opts)
 		},
 	}
@@ -95,8 +95,8 @@ func runAPIKey(o apiKeyOptions) error {
 
 	bits := policy.EntropyBits(o.Length, cs.Size())
 	var warnings []string
-	if err := policy.EnforceFloor(bits, o.MinEntropyBits, o.AllowWeak); err != nil {
-		return fail(ExitEntropyTooLow, err)
+	if floorErr := policy.EnforceFloor(bits, o.MinEntropyBits, o.AllowWeak); floorErr != nil {
+		return fail(ExitEntropyTooLow, floorErr)
 	}
 	if o.MinEntropyBits > 0 && bits < o.MinEntropyBits && o.AllowWeak {
 		warnings = append(warnings,

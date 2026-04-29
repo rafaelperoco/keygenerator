@@ -67,7 +67,7 @@ The default separator is a hyphen — it preserves word boundaries
 entropy at the seam) and works in shells, URLs, env files, and JSON.`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return runPassphrase(*opts)
 		},
 	}
@@ -143,7 +143,7 @@ func runPassphrase(o passphraseOptions) error {
 		if err != nil {
 			return fail(ExitRNGFailure, err)
 		}
-		phrase = phrase + d
+		phrase += d
 	}
 
 	out := audit.Output{

@@ -83,17 +83,17 @@ func TestRunSecret_AllEncodings(t *testing.T) {
 		bytes      int
 		validateFn func(t *testing.T, s string, raw int)
 	}{
-		{"base64url", 32, func(t *testing.T, s string, n int) {
+		{"base64url", 32, func(t *testing.T, s string, _ int) {
 			if _, err := base64.RawURLEncoding.DecodeString(s); err != nil {
 				t.Errorf("not valid base64url: %v", err)
 			}
 		}},
-		{"base64", 32, func(t *testing.T, s string, n int) {
+		{"base64", 32, func(t *testing.T, s string, _ int) {
 			if _, err := base64.StdEncoding.DecodeString(s); err != nil {
 				t.Errorf("not valid base64: %v", err)
 			}
 		}},
-		{"base32", 30, func(t *testing.T, s string, n int) {
+		{"base32", 30, func(t *testing.T, s string, _ int) {
 			if _, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(s); err != nil {
 				t.Errorf("not valid base32: %v", err)
 			}

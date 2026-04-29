@@ -12,6 +12,8 @@ import (
 // Class identifies a character category for class-requirement enforcement.
 type Class uint8
 
+// Class bitmask values. Combine with bitwise OR to express a set of
+// classes (e.g. ClassLower|ClassUpper). Used by --require-classes.
 const (
 	ClassLower Class = 1 << iota
 	ClassUpper

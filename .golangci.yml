@@ -1,0 +1,66 @@
+version: "2"
+
+run:
+  timeout: 5m
+  go: "1.23"
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - errcheck
+    - errorlint
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - nilerr
+    - revive
+    - staticcheck
+    - unconvert
+    - unparam
+    - unused
+
+  settings:
+    govet:
+      enable-all: true
+      disable:
+        # fieldalignment churns struct field order for marginal byte savings
+        # at the cost of legibility; we order fields semantically.
+        - fieldalignment
+    gosec:
+      excludes:
+        # G115: integer overflow conversion is fine in our small-int domain
+        # (length, charset size, etc. are bounded well below int32 range).
+        - G115
+    revive:
+      rules:
+        - name: var-naming
+        - name: indent-error-flow
+        - name: error-return
+        - name: error-naming
+        - name: exported
+        - name: package-comments
+        - name: unused-parameter
+        - name: empty-block
+        - name: superfluous-else
+        - name: unreachable-code
+
+  exclusions:
+    rules:
+      # Allow unused fields in test stub structs.
+      - path: _test\.go
+        linters:
+          - unparam
+          - unused
+      # E2E test uses os/exec extensively; some gosec rules don't apply.
+      - path: test/e2e/
+        linters:
+          - gosec
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

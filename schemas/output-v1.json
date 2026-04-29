@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rafaelperoco/keygenerator/schemas/output-v1.json",
+  "title": "keygenerator output schema v1",
+  "description": "Machine-readable output emitted by `keygenerator` subcommands when --json is set. Stable across the v2.x major release line.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "length",
+    "charset_id",
+    "charset_size",
+    "entropy_bits",
+    "algorithm",
+    "subcommand",
+    "version",
+    "commit",
+    "build_date",
+    "request_id",
+    "timestamp_utc"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "description": "Output schema version. Increments on breaking changes only. The current major-line schema is 1.",
+      "type": "integer",
+      "const": 1
+    },
+    "password": {
+      "description": "The generated credential. Omitted by the `entropy` subcommand (which consumes a password rather than producing one).",
+      "type": "string"
+    },
+    "length": {
+      "description": "Length of the credential in characters (or for passphrase, number of words).",
+      "type": "integer",
+      "minimum": 0
+    },
+    "charset_id": {
+      "description": "Identifier of the source character set or word list. Versioned (e.g. \"alphanum-v1\"); appending \"+excluded\" indicates --exclude was applied.",
+      "type": "string"
+    },
+    "charset_size": {
+      "description": "Cardinality of the charset or wordlist used for generation.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "entropy_bits": {
+      "description": "Shannon entropy in bits of a uniformly drawn credential of the reported length over the reported charset (length * log2(charset_size)).",
+      "type": "number",
+      "minimum": 0
+    },
+    "excluded_count": {
+      "description": "Count of distinct runes excluded from the charset via --exclude.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "excluded_sha256": {
+      "description": "Hex-encoded SHA-256 of the --exclude argument (omitted when no exclusion was applied). Allows audit logs to correlate excluded sets without echoing them.",
+      "type": "string",
+      "pattern": "^([0-9a-f]{64})?$"
+    },
+    "required_classes": {
+      "description": "Comma-separated list of character classes the output is guaranteed to contain. For the `entropy` subcommand, lists observed classes instead.",
+      "type": "string"
+    },
+    "algorithm": {
+      "description": "Identifier for the generation algorithm used.",
+      "type": "string"
+    },
+    "subcommand": {
+      "description": "Which subcommand produced this record.",
+      "type": "string",
+      "enum": ["password", "passphrase", "secret", "api-key", "pin", "entropy"]
+    },
+    "version": {
+      "description": "Build identity: semantic version of the binary (e.g. \"v2.0.0\"). \"dev\" for unstamped development builds.",
+      "type": "string"
+    },
+    "commit": {
+      "description": "Build identity: git commit SHA. \"none\" for unstamped builds.",
+      "type": "string"
+    },
+    "build_date": {
+      "description": "Build identity: ISO-8601 UTC timestamp from the build pipeline.",
+      "type": "string"
+    },
+    "request_id": {
+      "description": "RFC 4122 version-4 UUID generated for this invocation. Allows correlation across the stdout record and the audit log.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "timestamp_utc": {
+      "description": "RFC 3339 UTC timestamp of generation, nanosecond precision.",
+      "type": "string"
+    },
+    "warnings": {
+      "description": "Non-fatal advisories emitted by the generator (e.g. when --allow-weak bypasses the entropy floor or when a compatibility flag was used).",
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
