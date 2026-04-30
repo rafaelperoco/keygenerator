@@ -96,6 +96,21 @@
       "description": "Non-fatal advisories emitted by the generator (e.g. when --allow-weak bypasses the entropy floor or when a compatibility flag was used).",
       "type": "array",
       "items": { "type": "string" }
+    },
+    "crack_time_estimates": {
+      "description": "Optional opt-in field (set with --show-crack-time on the CLI). Time-to-break estimates under named attacker profiles. Each estimate is informational and assumes uniform random search; real attacks may be faster or slower depending on KDF, hardware, and dictionary effects. Profile IDs are versioned and reflect 2024-2026 cracking capabilities.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["profile_id", "description", "seconds", "human_readable"],
+        "properties": {
+          "profile_id": { "type": "string" },
+          "description": { "type": "string" },
+          "seconds": { "type": "number", "minimum": 0 },
+          "human_readable": { "type": "string" }
+        }
+      }
     }
   }
 }

@@ -25,6 +25,7 @@ type entropyOptions struct {
 	JSON                 bool
 	StdinParams          bool
 	RequireSchemaVersion int
+	ShowCrackTime        bool
 	Password             string
 	FromArg              bool
 	stdin                io.Reader
@@ -81,6 +82,8 @@ password (the caller already has it).`,
 		"read a JSON request from stdin to populate flags (avoids argv leakage)")
 	cmd.Flags().IntVar(&opts.RequireSchemaVersion, "require-schema-version", 0,
 		"if set, fail unless the output schema version matches this value")
+	cmd.Flags().BoolVar(&opts.ShowCrackTime, "show-crack-time", false,
+		"include crack-time estimates under named attacker profiles")
 	return cmd
 }
 
@@ -137,11 +140,17 @@ func runEntropy(o entropyOptions) error {
 			TimestampUTC:    o.now().Format(time.RFC3339Nano),
 			Warnings:        warnings,
 		}
+		if o.ShowCrackTime {
+			out.CrackTimeEstimates = projectCrackTimes(bits)
+		}
 		return writeJSON(o.stdout, out)
 	}
 
 	if _, err := fmt.Fprintf(o.stdout, "%.2f bits\n", bits); err != nil {
 		return fail(ExitRNGFailure, err)
+	}
+	if o.ShowCrackTime {
+		printCrackTime(o.stdout, bits)
 	}
 	return nil
 }

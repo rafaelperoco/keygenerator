@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rafaelperoco/keygenerator/internal/audit"
+	"github.com/rafaelperoco/keygenerator/internal/policy"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,7 @@ type commonOpts struct {
 	AuditLogPath         string
 	StdinParams          bool
 	RequireSchemaVersion int
+	ShowCrackTime        bool
 	stdin                io.Reader
 	stdout               io.Writer
 	stderr               io.Writer
@@ -43,6 +45,8 @@ func addCommonFlags(cmd *cobra.Command, o *commonOpts) {
 		"read a JSON request from stdin to populate flags (avoids argv leakage)")
 	cmd.Flags().IntVar(&o.RequireSchemaVersion, "require-schema-version", 0,
 		"if set, fail unless the output schema version matches this value")
+	cmd.Flags().BoolVar(&o.ShowCrackTime, "show-crack-time", false,
+		"include crack-time estimates under named attacker profiles in the JSON output")
 }
 
 // emit stamps the audit envelope and writes the result. Each subcommand
@@ -65,6 +69,9 @@ func emit(c commonOpts, out audit.Output, password string) error {
 	out.Commit = commit
 	out.BuildDate = buildDate
 	out.TimestampUTC = c.now().Format(time.RFC3339Nano)
+	if c.ShowCrackTime {
+		out.CrackTimeEstimates = projectCrackTimes(out.EntropyBits)
+	}
 
 	if c.AuditLogPath != "" {
 		entry := audit.LogFromOutput(out, audit.SHA256Hex(password))
@@ -79,5 +86,38 @@ func emit(c commonOpts, out audit.Output, password string) error {
 	if _, err := fmt.Fprintln(c.stdout, password); err != nil {
 		return fail(ExitRNGFailure, err)
 	}
+	if c.ShowCrackTime {
+		printCrackTime(c.stdout, out.EntropyBits)
+	}
 	return nil
+}
+
+// projectCrackTimes converts policy.CrackTimeEstimate values into the
+// audit.CrackTimeEstimate JSON shape. Kept private to the cmd package so
+// the public Result type does not need to import audit transitively.
+func projectCrackTimes(bits float64) []audit.CrackTimeEstimate {
+	src := policy.EstimateCrackTimes(bits)
+	out := make([]audit.CrackTimeEstimate, 0, len(src))
+	for _, e := range src {
+		out = append(out, audit.CrackTimeEstimate{
+			ProfileID:     e.ProfileID,
+			Description:   e.Description,
+			Seconds:       e.Seconds,
+			HumanReadable: e.HumanReadable,
+		})
+	}
+	return out
+}
+
+// printCrackTime renders the crack-time estimates in plain mode after the
+// generated credential. Emits to the same writer as the credential so a
+// human running interactively gets immediate context; pipelines using
+// --json get the structured form instead. Write errors are ignored
+// (best-effort secondary output; the credential itself was already
+// written successfully).
+func printCrackTime(w io.Writer, bits float64) {
+	_, _ = fmt.Fprintf(w, "\nentropy: %.2f bits\ntime to crack (average case):\n", bits)
+	for _, e := range policy.EstimateCrackTimes(bits) {
+		_, _ = fmt.Fprintf(w, "  %-30s %s\n", e.ProfileID, e.HumanReadable)
+	}
 }
