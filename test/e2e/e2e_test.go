@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -46,6 +47,9 @@ func keygenBinary(t *testing.T) string {
 			return
 		}
 		bin := filepath.Join(dir, "keygenerator")
+		if runtime.GOOS == "windows" {
+			bin += ".exe"
+		}
 		// Walk up to find module root (go.mod).
 		root, err := findModuleRoot()
 		if err != nil {
