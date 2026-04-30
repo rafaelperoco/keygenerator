@@ -1,0 +1,175 @@
+version: 2
+
+project_name: keygenerator
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod verify
+
+builds:
+  - id: keygenerator
+    main: ./cmd/keygenerator
+    binary: keygenerator
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+      - -buildvcs=true
+    ldflags:
+      - -s -w
+      - -X 'main.version={{.Version}}'
+      - -X 'main.commit={{.FullCommit}}'
+      - -X 'main.buildDate={{.Date}}'
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - LICENSE
+      - README.md
+      - schemas/output-v1.json
+      - docs/*
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot"
+
+source:
+  enabled: true
+  name_template: '{{ .ProjectName }}_{{ .Version }}_source'
+
+sboms:
+  - id: archive
+    artifacts: archive
+    documents:
+      - "${artifact}.sbom.json"
+  - id: source
+    artifacts: source
+    documents:
+      - "${artifact}.sbom.json"
+
+signs:
+  - cmd: cosign
+    certificate: '${artifact}.pem'
+    args:
+      - sign-blob
+      - '--output-certificate=${certificate}'
+      - '--output-signature=${signature}'
+      - '${artifact}'
+      - '--yes'
+    artifacts: checksum
+    output: true
+
+dockers:
+  - image_templates:
+      - 'ghcr.io/rafaelperoco/{{ .ProjectName }}:{{ .Version }}-amd64'
+      - 'ghcr.io/rafaelperoco/{{ .ProjectName }}:latest-amd64'
+    use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Auditable random password generator for AI agents"
+      - "--label=org.opencontainers.image.source=https://github.com/rafaelperoco/keygenerator"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+
+  - image_templates:
+      - 'ghcr.io/rafaelperoco/{{ .ProjectName }}:{{ .Version }}-arm64'
+      - 'ghcr.io/rafaelperoco/{{ .ProjectName }}:latest-arm64'
+    use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Auditable random password generator for AI agents"
+      - "--label=org.opencontainers.image.source=https://github.com/rafaelperoco/keygenerator"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+
+docker_manifests:
+  - name_template: 'ghcr.io/rafaelperoco/{{ .ProjectName }}:{{ .Version }}'
+    image_templates:
+      - 'ghcr.io/rafaelperoco/{{ .ProjectName }}:{{ .Version }}-amd64'
+      - 'ghcr.io/rafaelperoco/{{ .ProjectName }}:{{ .Version }}-arm64'
+  - name_template: 'ghcr.io/rafaelperoco/{{ .ProjectName }}:latest'
+    image_templates:
+      - 'ghcr.io/rafaelperoco/{{ .ProjectName }}:latest-amd64'
+      - 'ghcr.io/rafaelperoco/{{ .ProjectName }}:latest-arm64'
+
+docker_signs:
+  - cmd: cosign
+    artifacts: manifests
+    args:
+      - sign
+      - '${artifact}@${digest}'
+      - '--yes'
+    output: true
+
+brews:
+  - name: keygenerator
+    repository:
+      owner: rafaelperoco
+      name: homebrew-tap
+      branch: main
+      token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'
+    directory: Formula
+    homepage: 'https://github.com/rafaelperoco/keygenerator'
+    description: 'Auditable random password generator for AI agents'
+    license: 'MIT'
+    test: |
+      system "#{bin}/keygenerator", "--require-schema-version=1", "--json"
+
+release:
+  github:
+    owner: rafaelperoco
+    name: keygenerator
+  mode: replace
+  draft: false
+  prerelease: auto
+  name_template: '{{ .ProjectName }} {{ .Version }}'
+  header: |
+    ## keygenerator {{ .Version }}
+
+    Auditable random password generator for AI agents. Verified release with SLSA Level 3 provenance, SBOM, and cosign keyless signatures.
+
+    See [docs/AUDIT.md](docs/AUDIT.md) for end-to-end verification instructions.
+  footer: |
+    **Verify this release**:
+
+    ```
+    cosign verify-blob \
+      --certificate checksums.txt.pem \
+      --signature checksums.txt.sig \
+      --certificate-identity-regexp "https://github.com/rafaelperoco/keygenerator" \
+      --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+      checksums.txt
+    ```
