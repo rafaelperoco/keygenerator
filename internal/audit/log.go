@@ -31,9 +31,16 @@ func AppendLog(path string, entry LogEntry) error {
 	return f.Sync()
 }
 
-// SHA256Hex returns the hex-encoded SHA-256 of s. Used for password and
-// excluded-set fingerprints in audit records.
+// SHA256Hex returns the hex-encoded SHA-256 of s. Used as a fingerprint
+// for audit-log correlation — it is NOT used for password hashing in the
+// verifier-side sense (that would require a slow KDF like Argon2id). The
+// audit log records hashes of credentials that have already been emitted
+// to the caller, so the threat model is "match a known plaintext to a
+// log entry," for which SHA-256 is the appropriate primitive: fast,
+// collision-resistant, and standard.
+//
+//nolint:gosec // G401: SHA-256 is correct here; not a password verifier.
 func SHA256Hex(s string) string {
-	sum := sha256.Sum256([]byte(s))
+	sum := sha256.Sum256([]byte(s)) //nolint:gosec // G401: see doc comment above.
 	return hex.EncodeToString(sum[:])
 }

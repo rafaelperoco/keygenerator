@@ -1,0 +1,14 @@
+# Force binary handling on the embedded EFF Large Wordlist so its SHA-256
+# hash is byte-identical across operating systems. Git's CRLF conversion
+# on Windows would otherwise change the hash and trip the runtime
+# verification in internal/words/eff_large.go.
+internal/words/eff_large_wordlist.txt -text
+
+# Treat all Go files as LF to keep go fmt happy across OSes.
+*.go text eol=lf
+
+# Treat config and docs files as LF as well.
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
