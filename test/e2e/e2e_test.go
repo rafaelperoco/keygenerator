@@ -305,7 +305,7 @@ func TestE2E_AuditLog(t *testing.T) {
 		t.Fatalf("exit=%d stderr=%q", code, stderr)
 	}
 	out := decode(t, stdout)
-	b, err := os.ReadFile(logPath)
+	b, err := os.ReadFile(logPath) // #nosec G304 -- test temp file
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -315,10 +315,13 @@ func TestE2E_AuditLog(t *testing.T) {
 	if !strings.Contains(string(b), out.RequestID) {
 		t.Errorf("audit log missing request_id")
 	}
-	// Check file mode 0600 on POSIX.
-	info, _ := os.Stat(logPath)
-	if mode := info.Mode().Perm(); mode != 0o600 {
-		t.Errorf("audit log mode = %o, want 0600", mode)
+	// Check file mode 0600 on POSIX. Windows does not honor POSIX mode
+	// bits — file ACLs are different — so we skip this assertion there.
+	if runtime.GOOS != "windows" {
+		info, _ := os.Stat(logPath)
+		if mode := info.Mode().Perm(); mode != 0o600 {
+			t.Errorf("audit log mode = %o, want 0600", mode)
+		}
 	}
 }
 

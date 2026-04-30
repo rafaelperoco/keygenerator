@@ -159,12 +159,17 @@ func TestRunPassphrase_Capitalize(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	o := basePassphraseOptions(&stdout, &stderr)
 	o.Capitalize = true
+	// Use a separator that never appears inside an EFF word. The default
+	// "-" is a poor choice for splitting in tests because the EFF list
+	// contains compound words like "yo-yo" — splitting produces tokens
+	// like "yo" that aren't actually word boundaries.
+	o.Separator = " "
 	o.JSON = true
 	if err := runPassphrase(o); err != nil {
 		t.Fatalf("runPassphrase: %v", err)
 	}
 	out := decodeJSON(t, stdout.Bytes())
-	for _, w := range strings.Split(out.Password, "-") {
+	for _, w := range strings.Split(out.Password, " ") {
 		first := w[0]
 		if first < 'A' || first > 'Z' {
 			t.Errorf("word %q does not start with uppercase", w)
