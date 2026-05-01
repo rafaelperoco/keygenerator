@@ -1,0 +1,6 @@
+/keygenerator
+/dist/
+*.test
+*.out
+*.cov
+.DS_Store

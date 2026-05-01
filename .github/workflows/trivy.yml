@@ -1,0 +1,50 @@
+name: trivy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Re-scan daily so CVEs disclosed after release surface in the
+    # Security tab without requiring a code change.
+    - cron: "13 4 * * *"
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: trivy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  filesystem:
+    name: filesystem (deps + secrets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Trivy filesystem mode covers Go module CVEs as a second opinion to
+      # govulncheck (callgraph-aware) and CodeQL (static analysis). Different
+      # CVE feeds catch different things; defense in depth.
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-fs.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+          ignore-unfixed: true
+          # Skip the embedded EFF Large Wordlist: it's a fixed asset whose
+          # SHA-256 is verified at runtime; Trivy's secret scanner has no
+          # context for it.
+          skip-files: internal/words/eff_large_wordlist.txt
+
+      - name: Upload filesystem SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-filesystem

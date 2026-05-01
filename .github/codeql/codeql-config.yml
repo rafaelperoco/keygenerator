@@ -1,0 +1,20 @@
+name: keygenerator-codeql
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+# Path-based suppressions for the audit fingerprint use case. The
+# go/weak-cryptographic-algorithm rule fires on internal/audit/log.go
+# because SHA-256 touches a value variable named "password". In context
+# the call is computing an audit-log fingerprint to correlate emitted
+# credentials with log entries — NOT verifier-side password hashing
+# (which would require Argon2id/scrypt/bcrypt). SHA-256 is the
+# appropriate primitive here: fast, collision-resistant, and standard
+# for fingerprinting. Documented in internal/audit/log.go and
+# docs/CRYPTO.md.
+query-filters:
+  - exclude:
+      id: go/weak-cryptographic-algorithm
+      paths:
+        - internal/audit/log.go
