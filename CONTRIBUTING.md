@@ -75,6 +75,28 @@ each charset's runes; any modification fails the test until the ID changes.
 5. Reference any related issues.
 6. Wait for CI green and a review.
 
+## CodeQL alerts
+
+The CodeQL `go/weak-cryptographic-algorithm` rule fires on
+`internal/audit/log.go:SHA256Hex` because the helper hashes a value
+named "password". This is a documented false positive: the SHA-256 here
+fingerprints credentials for audit-log correlation, **not** verifier-side
+password storage (which would require a slow KDF like Argon2id).
+
+The custom workflow `.github/workflows/codeql.yml` excludes the rule for
+this file via `.github/codeql/codeql-config.yml` and runs cleanly. If
+GitHub's "CodeQL analysis (Default Setup)" is also enabled on the repo,
+it will not respect that config and will re-raise the alert.
+
+To resolve:
+
+- **Preferred**: disable Default Setup at
+  Settings → Security → Code security and analysis → CodeQL analysis
+  → switch from "Default" to "Advanced". Our workflow then becomes the
+  single source of truth.
+- **Alternative**: dismiss the alert via Security → Code scanning with
+  reason "Won't fix" and the justification text in `internal/audit/log.go`.
+
 ## Releases
 
 Releases are tag-driven. Pushing `vX.Y.Z` triggers `.github/workflows/release.yml`
