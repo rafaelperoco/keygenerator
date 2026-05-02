@@ -128,27 +128,42 @@ jobs:
             --ignore-unfixed \
             "${IMAGE}"
 
-      - name: Generate Trivy SARIF reports
+      # Generate one SARIF per architecture archive (we have 5: linux/darwin
+      # × amd64/arm64 plus windows/amd64) and merge them into a single
+      # report. GitHub Code Scanning rejects multiple SARIF runs uploaded
+      # under the same category, so we upload only the merged report.
+      # Reference: https://github.blog/changelog/2025-07-21-code-scanning-will-stop-combining-multiple-sarif-runs-uploaded-in-the-same-sarif-file/
+      - name: Generate consolidated Trivy SARIF report
         if: success()
         run: |
           set -euo pipefail
           shopt -s nullglob
+          # Pick a single representative SBOM (linux/amd64) — all archive
+          # SBOMs come from the same module graph, so the CVE list is
+          # identical across them. Scanning one is sufficient.
+          rep=$(ls dist/keygenerator_*_linux_amd64.tar.gz.sbom.json 2>/dev/null | head -n1)
+          if [ -z "${rep}" ]; then
+            echo "no representative SBOM found, skipping SARIF generation"
+            exit 0
+          fi
           mkdir -p trivy-sarif
-          for sbom in dist/*.sbom.json; do
-            base=$(basename "$sbom" .sbom.json)
-            trivy sbom --format sarif --output "trivy-sarif/${base}.sarif" "$sbom" || true
-          done
-          ls -la trivy-sarif/ || true
+          trivy sbom --format sarif --output trivy-sarif/release.sarif "$rep"
+          ls -la trivy-sarif/
 
       - name: Upload Trivy SARIF to Security tab
-        if: success() && hashFiles('trivy-sarif/*.sarif') != ''
+        if: success() && hashFiles('trivy-sarif/release.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: trivy-sarif
+          sarif_file: trivy-sarif/release.sarif
           category: trivy-release
 
+      # Always compute SLSA subjects when goreleaser succeeded, even if a
+      # later cosmetic step (SARIF upload) failed. Provenance generation
+      # is the load-bearing security artifact; we cannot let SARIF
+      # upload cosmetics block it.
       - name: Compute artifact SHA-256 hashes for SLSA
         id: hashes
+        if: steps.goreleaser.outcome == 'success'
         env:
           ARTIFACTS: '${{ steps.goreleaser.outputs.artifacts }}'
         run: |
