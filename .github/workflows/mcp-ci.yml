@@ -1,0 +1,79 @@
+name: mcp-ci
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mcp/**"
+      - "web/wasm/**"
+      - "internal/**"
+      - "pkg/**"
+      - ".github/workflows/mcp-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "mcp/**"
+      - "web/wasm/**"
+      - "internal/**"
+      - "pkg/**"
+      - ".github/workflows/mcp-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-smoke:
+    name: build + smoke
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.2"
+          cache-dependency-path: go.sum
+
+      - name: Install TinyGo
+        env:
+          TINYGO_VERSION: "0.41.1"
+        run: |
+          set -euo pipefail
+          curl -sSL "https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo${TINYGO_VERSION}.linux-amd64.tar.gz" \
+            -o /tmp/tinygo.tgz
+          sudo tar -xzf /tmp/tinygo.tgz -C /usr/local/
+          echo "/usr/local/tinygo/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mcp/package-lock.json
+
+      - name: Install MCP deps
+        run: npm ci
+
+      - name: Build MCP server (compiles WASM + TS)
+        run: npm run build
+
+      - name: Smoke test MCP server (load WASM, generate one of each)
+        run: npm run smoke
+
+      - name: MCP protocol handshake
+        run: |
+          set -euo pipefail
+          # Send initialize + tools/list + a generate_secret call. The server
+          # exits when stdin closes after the test feeds its inputs.
+          (
+            echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}'
+            echo '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+            echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
+            echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"generate_secret","arguments":{"bytes":16,"encoding":"hex"}}}'
+            sleep 1
+          ) | node dist/index.js | tee mcp-smoke.jsonl
+          # Verify we got 3 responses with matching ids.
+          jq -e 'select(.id==1)' mcp-smoke.jsonl
+          jq -e 'select(.id==2) | .result.tools | length >= 6' mcp-smoke.jsonl
+          jq -e 'select(.id==3) | .result.content[0].text | fromjson | .schema_version == 1' mcp-smoke.jsonl

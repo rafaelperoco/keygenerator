@@ -1,0 +1,48 @@
+{
+  "name": "@secretgenerator/mcp",
+  "version": "2.0.0",
+  "description": "MCP server exposing secretgenerator CSPRNG-backed credential generation tools to Claude, Cursor, Cline, Zed, and other MCP-aware clients.",
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://secretgenerator.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafaelperoco/secretgenerator.git",
+    "directory": "mcp"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "ai-agent",
+    "secret-generation",
+    "password-generator",
+    "csprng",
+    "auditable"
+  ],
+  "bin": {
+    "secretgenerator-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "wasm",
+    "README.md"
+  ],
+  "scripts": {
+    "prebuild": "node scripts/copy-wasm.mjs",
+    "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build",
+    "smoke": "node dist/smoke.js"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.0"
+  }
+}
