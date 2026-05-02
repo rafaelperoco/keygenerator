@@ -174,21 +174,24 @@ export default function Generator() {
         {state.kind === "ready" && (
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-wider text-[var(--color-mute)] font-mono">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] uppercase tracking-wider text-[var(--color-mute)] font-mono shrink-0">
                   output
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3 sm:gap-2 shrink-0">
                   <button
                     onClick={regenerate}
-                    className="text-[11px] font-mono text-[var(--color-mute)] hover:text-[var(--color-fg)] transition"
+                    className="text-xs sm:text-[11px] font-mono text-[var(--color-mute)] hover:text-[var(--color-fg)] active:text-[var(--color-fg)] transition py-1"
+                    aria-label="regenerate using browser CSPRNG"
                     title="generate again (uses your browser CSPRNG)"
                   >
-                    ↻ regenerate
+                    <span className="sm:hidden">↻</span>
+                    <span className="hidden sm:inline">↻ regenerate</span>
                   </button>
                   <button
                     onClick={copyPassword}
-                    className="text-[11px] font-mono text-[var(--color-mute)] hover:text-[var(--color-fg)] transition"
+                    className="text-xs sm:text-[11px] font-mono text-[var(--color-mute)] hover:text-[var(--color-fg)] active:text-[var(--color-fg)] transition py-1"
+                    aria-label="copy generated credential"
                   >
                     {copied === "password" ? "✓ copied" : "copy"}
                   </button>
@@ -199,6 +202,8 @@ export default function Generator() {
               </div>
             </div>
 
+            {/* On mobile: 2 stats per row, charset + schema collapse into a
+                single line each below. On md+, all four side-by-side. */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-[var(--color-line)] text-xs font-mono">
               <Stat
                 label="entropy"
@@ -220,19 +225,25 @@ export default function Generator() {
                   </>
                 }
               />
-              <Stat
-                label="charset"
-                value={<span className="break-all">{state.result.charset_id}</span>}
-              />
-              <Stat
-                label="schema"
-                value={
-                  <>
-                    v{state.result.schema_version}
-                    <span className="text-[var(--color-mute)]"> · {state.result.algorithm}</span>
-                  </>
-                }
-              />
+              <div className="col-span-2 md:col-span-1">
+                <Stat
+                  label="charset"
+                  value={<span className="break-all">{state.result.charset_id}</span>}
+                />
+              </div>
+              <div className="col-span-2 md:col-span-1">
+                <Stat
+                  label="schema"
+                  value={
+                    <>
+                      v{state.result.schema_version}
+                      <span className="text-[var(--color-mute)] block md:inline md:before:content-['_·_'] break-all">
+                        {state.result.algorithm}
+                      </span>
+                    </>
+                  }
+                />
+              </div>
             </div>
 
             <EntropyBar bits={state.result.entropy_bits} />
@@ -333,7 +344,7 @@ export default function Generator() {
                 {copied === "json" ? "✓ copied" : "copy json"}
               </button>
             </div>
-            <pre className="text-[10px] sm:text-[11px] font-mono leading-relaxed overflow-x-auto whitespace-pre max-w-full">
+            <pre className="text-[10px] sm:text-[11px] font-mono leading-relaxed whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">
 {JSON.stringify(state.result, null, 2)}
             </pre>
           </div>
@@ -374,56 +385,58 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
 function EntropyBar({ bits }: { bits: number }) {
   const max = 256;
   const pct = Math.min(100, (bits / max) * 100);
-  // Marks shown at all viewport sizes; the rightmost ones (192, 256) sit
-  // close to the panel edge so we anchor their tooltips by the right edge
-  // to avoid overflow at small widths.
-  const marks: Array<{
-    at: number;
-    lbl: string;
-    align: "left" | "center" | "right";
-  }> = [
-    { at: 64, lbl: "guessable", align: "left" },
-    { at: 80, lbl: "min", align: "center" },
-    { at: 128, lbl: "strong", align: "center" },
-    { at: 192, lbl: "agent", align: "center" },
-    { at: 256, lbl: "max", align: "right" },
+  // Reference thresholds (NIST/Reinhold-aligned). Each one is "lit" when
+  // bits >= threshold. Only render visual ticks above sm; mobile shows
+  // a single bar plus a textual band classifier so the layout stays calm.
+  const thresholds = [
+    { at: 80, lbl: "min" },
+    { at: 128, lbl: "strong" },
+    { at: 192, lbl: "agent" },
+    { at: 256, lbl: "max" },
   ];
+  const band =
+    bits >= 192
+      ? "agent-grade"
+      : bits >= 128
+      ? "strong"
+      : bits >= 80
+      ? "minimum acceptable"
+      : "weak";
   return (
     <div className="pt-3 border-t border-[var(--color-line)] min-w-0">
-      <div className="text-[10px] uppercase tracking-wider text-[var(--color-mute)] font-mono mb-3">
-        entropy
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] uppercase tracking-wider text-[var(--color-mute)] font-mono">
+          entropy band
+        </span>
+        <span className="text-[10px] font-mono text-[var(--color-fg)]">{band}</span>
       </div>
-      <div className="relative h-1.5 bg-[var(--color-line)] rounded-full mb-7">
+      <div className="relative h-1.5 bg-[var(--color-line)] rounded-full sm:mb-7">
         <div
           className="absolute inset-y-0 left-0 bg-[var(--color-accent)] rounded-full transition-all"
           style={{ width: pct + "%" }}
         />
-        {marks.map((m) => {
-          const transform =
-            m.align === "left"
-              ? "translateX(0)"
-              : m.align === "right"
-              ? "translateX(-100%)"
-              : "translateX(-50%)";
-          return (
+        {/* Tick marks only on sm+ to avoid mobile congestion. */}
+        <div className="hidden sm:block">
+          {thresholds.map((t) => (
             <span
-              key={m.at}
+              key={t.at}
               className={
-                "absolute -top-1 flex flex-col items-start font-mono text-[9px] " +
-                (bits >= m.at
-                  ? "text-[var(--color-fg)]"
-                  : "text-[var(--color-mute)]")
+                "absolute -top-1 flex flex-col items-center font-mono text-[9px] " +
+                (bits >= t.at ? "text-[var(--color-fg)]" : "text-[var(--color-mute)]")
               }
-              style={{ left: (m.at / max) * 100 + "%", transform }}
+              style={{
+                left: (t.at / max) * 100 + "%",
+                transform: t.at === max ? "translateX(-100%)" : "translateX(-50%)",
+              }}
             >
               <span className="block h-3.5 w-px bg-current opacity-60" />
               <span className="mt-1 whitespace-nowrap">
-                <span className="opacity-70">{m.at}</span>{" "}
-                <span className="opacity-50 hidden sm:inline">{m.lbl}</span>
+                <span className="opacity-70">{t.at}</span>{" "}
+                <span className="opacity-50">{t.lbl}</span>
               </span>
             </span>
-          );
-        })}
+          ))}
+        </div>
       </div>
     </div>
   );

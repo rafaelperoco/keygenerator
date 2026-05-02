@@ -73,7 +73,7 @@ const installCmd = `go install github.com/rafaelperoco/secretgenerator/cmd/secre
 
     {/* Generator */}
     <section id="generate" class="scroll-mt-16">
-      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-4">
+      <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-2 mb-4">
         <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--color-mute)]">generate</h2>
         <span class="text-[10px] font-mono text-[var(--color-mute)]">
           runs in your browser · WebAssembly · same code as the CLI
@@ -125,16 +125,16 @@ const installCmd = `go install github.com/rafaelperoco/secretgenerator/cmd/secre
       <div class="grid md:grid-cols-3 gap-3">
         <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
           <div class="text-xs font-mono text-[var(--color-mute)] mb-2">go install</div>
-          <pre class="font-mono text-[11px] sm:text-[12px] overflow-x-auto whitespace-pre max-w-full">{installCmd}</pre>
+          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">{installCmd}</pre>
         </div>
         <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
           <div class="text-xs font-mono text-[var(--color-mute)] mb-2">homebrew (macos / linux)</div>
-          <pre class="font-mono text-[11px] sm:text-[12px] overflow-x-auto whitespace-pre max-w-full">brew tap rafaelperoco/tap
+          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">brew tap rafaelperoco/tap
 brew install secretgenerator</pre>
         </div>
         <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
           <div class="text-xs font-mono text-[var(--color-mute)] mb-2">container (distroless, multi-arch)</div>
-          <pre class="font-mono text-[11px] sm:text-[12px] overflow-x-auto whitespace-pre max-w-full">docker pull ghcr.io/rafaelperoco/secretgenerator:{version}
+          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">docker pull ghcr.io/rafaelperoco/secretgenerator:{version}
 docker run --rm ghcr.io/rafaelperoco/secretgenerator:{version} --json</pre>
         </div>
       </div>
@@ -180,7 +180,7 @@ docker run --rm ghcr.io/rafaelperoco/secretgenerator:{version} --json</pre>
         (GitHub Actions). You verify cryptographically; this site is just a pointer.
       </p>
       <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
-        <pre class="font-mono text-[11px] sm:text-[12px] overflow-x-auto whitespace-pre max-w-full"><span class="text-[var(--color-mute)]">$</span> cosign verify-blob \
+        <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full"><span class="text-[var(--color-mute)]">$</span> cosign verify-blob \
   --certificate checksums.txt.pem \
   --signature checksums.txt.sig \
   --certificate-identity-regexp <span class="text-[var(--color-accent)]">"https://github.com/rafaelperoco/secretgenerator/.github/workflows/release.yml@refs/tags/v.*"</span> \
