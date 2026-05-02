@@ -107,16 +107,26 @@ jobs:
 
       # Gate: scan the published container images for OS-level CVEs (libc,
       # ca-certificates, etc.) that govulncheck does not see. Distroless
-      # minimizes this surface but does not eliminate it.
+      # minimizes this surface but does not eliminate it. We strip the
+      # leading "v" from the tag to match goreleaser's image tag template
+      # ({{ .Version }} is "2.0.0-alpha.7", not "v2.0.0-alpha.7").
       - name: Trivy container image scan (release gate)
         env:
-          IMAGE: 'ghcr.io/${{ github.repository_owner }}/keygenerator:${{ github.ref_name }}'
+          REF_NAME: ${{ github.ref_name }}
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
+          set -euo pipefail
+          # GitHub gives us "v2.0.0-alpha.7" but goreleaser tags the
+          # container as "2.0.0-alpha.7" via {{ .Version }}. Strip the
+          # leading "v" to match.
+          VERSION="${REF_NAME#v}"
+          IMAGE="ghcr.io/${REPO_OWNER}/keygenerator:${VERSION}"
+          echo "scanning ${IMAGE}"
           trivy image \
             --severity CRITICAL,HIGH \
             --exit-code 1 \
             --ignore-unfixed \
-            "$IMAGE"
+            "${IMAGE}"
 
       - name: Generate Trivy SARIF reports
         if: success()
