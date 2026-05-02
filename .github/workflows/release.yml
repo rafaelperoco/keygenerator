@@ -121,7 +121,7 @@ jobs:
           # container as "2.0.0-alpha.7" via {{ .Version }}. Strip the
           # leading "v" to match.
           VERSION="${REF_NAME#v}"
-          IMAGE="ghcr.io/${REPO_OWNER}/keygenerator:${VERSION}"
+          IMAGE="ghcr.io/${REPO_OWNER}/secretgenerator:${VERSION}"
           echo "scanning ${IMAGE}"
           trivy image \
             --severity CRITICAL,HIGH \
@@ -142,7 +142,7 @@ jobs:
           # Pick a single representative SBOM (linux/amd64) — all archive
           # SBOMs come from the same module graph, so the CVE list is
           # identical across them. Scanning one is sufficient.
-          rep=$(ls dist/keygenerator_*_linux_amd64.tar.gz.sbom.json 2>/dev/null | head -n1)
+          rep=$(ls dist/secretgenerator_*_linux_amd64.tar.gz.sbom.json 2>/dev/null | head -n1)
           if [ -z "${rep}" ]; then
             echo "no representative SBOM found, skipping SARIF generation"
             exit 0

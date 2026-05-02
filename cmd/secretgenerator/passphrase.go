@@ -8,9 +8,9 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/rafaelperoco/keygenerator/internal/audit"
-	"github.com/rafaelperoco/keygenerator/internal/policy"
-	"github.com/rafaelperoco/keygenerator/internal/words"
+	"github.com/rafaelperoco/secretgenerator/internal/audit"
+	"github.com/rafaelperoco/secretgenerator/internal/policy"
+	"github.com/rafaelperoco/secretgenerator/internal/words"
 	"github.com/spf13/cobra"
 )
 

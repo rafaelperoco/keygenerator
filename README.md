@@ -1,4 +1,4 @@
-# keygenerator
+# secretgenerator
 
 Auditable random credential generator for AI agents and machine-readable
 pipelines. Replaces ad-hoc password generation with a verifiable contract
@@ -9,7 +9,7 @@ backed by the OS CSPRNG.
 > shows Claude, GPT, and Gemini produce passwords with ~20 bits of effective
 > entropy instead of the ~100 bits the same models claim. Specific
 > 16-character sequences recurred 18 times out of 50 attempts. LLMs cannot
-> sample uniformly. keygenerator is the correct primitive: an LLM tool-calls
+> sample uniformly. secretgenerator is the correct primitive: an LLM tool-calls
 > it instead of inventing the credential itself.
 
 ## Features
@@ -31,16 +31,16 @@ provenance and SBOM inspection. Quick path:
 
 ```sh
 # 1. Download the artifacts.
-curl -LO https://github.com/rafaelperoco/keygenerator/releases/download/v2.0.0/keygenerator_2.0.0_linux_amd64.tar.gz
-curl -LO https://github.com/rafaelperoco/keygenerator/releases/download/v2.0.0/checksums.txt
-curl -LO https://github.com/rafaelperoco/keygenerator/releases/download/v2.0.0/checksums.txt.sig
-curl -LO https://github.com/rafaelperoco/keygenerator/releases/download/v2.0.0/checksums.txt.pem
+curl -LO https://github.com/rafaelperoco/secretgenerator/releases/download/v2.0.0/secretgenerator_2.0.0_linux_amd64.tar.gz
+curl -LO https://github.com/rafaelperoco/secretgenerator/releases/download/v2.0.0/checksums.txt
+curl -LO https://github.com/rafaelperoco/secretgenerator/releases/download/v2.0.0/checksums.txt.sig
+curl -LO https://github.com/rafaelperoco/secretgenerator/releases/download/v2.0.0/checksums.txt.pem
 
 # 2. Verify the cosign signature.
 cosign verify-blob \
   --certificate checksums.txt.pem \
   --signature checksums.txt.sig \
-  --certificate-identity-regexp "https://github.com/rafaelperoco/keygenerator/.github/workflows/release.yml@refs/tags/v.*" \
+  --certificate-identity-regexp "https://github.com/rafaelperoco/secretgenerator/.github/workflows/release.yml@refs/tags/v.*" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
   checksums.txt
 
@@ -48,35 +48,35 @@ cosign verify-blob \
 sha256sum -c checksums.txt --ignore-missing
 
 # 4. Extract and install.
-tar -xzf keygenerator_2.0.0_linux_amd64.tar.gz
-sudo mv keygenerator /usr/local/bin/
+tar -xzf secretgenerator_2.0.0_linux_amd64.tar.gz
+sudo mv secretgenerator /usr/local/bin/
 ```
 
 ### Homebrew
 
 ```sh
 brew tap rafaelperoco/tap
-brew install keygenerator
+brew install secretgenerator
 ```
 
 ### Go install
 
 ```sh
-go install github.com/rafaelperoco/keygenerator/cmd/keygenerator@v2.0.0
+go install github.com/rafaelperoco/secretgenerator/cmd/secretgenerator@v2.0.0
 ```
 
 ### Container
 
 ```sh
-docker pull ghcr.io/rafaelperoco/keygenerator:v2.0.0
-docker run --rm ghcr.io/rafaelperoco/keygenerator:v2.0.0 --json
+docker pull ghcr.io/rafaelperoco/secretgenerator:v2.0.0
+docker run --rm ghcr.io/rafaelperoco/secretgenerator:v2.0.0 --json
 ```
 
 The container is signed; verify with:
 
 ```sh
-cosign verify ghcr.io/rafaelperoco/keygenerator:v2.0.0 \
-  --certificate-identity-regexp "https://github.com/rafaelperoco/keygenerator/.github/workflows/release.yml@refs/tags/v.*" \
+cosign verify ghcr.io/rafaelperoco/secretgenerator:v2.0.0 \
+  --certificate-identity-regexp "https://github.com/rafaelperoco/secretgenerator/.github/workflows/release.yml@refs/tags/v.*" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
 
@@ -84,22 +84,22 @@ cosign verify ghcr.io/rafaelperoco/keygenerator:v2.0.0 \
 
 ```sh
 # Default: 20-char alphanumeric password, ~119 bits.
-keygenerator
+secretgenerator
 
 # Machine-readable JSON with crack-time estimates.
-keygenerator --json --show-crack-time
+secretgenerator --json --show-crack-time
 
 # Strong API token, Stripe-style.
-keygenerator api-key --prefix sk_live --length 40
+secretgenerator api-key --prefix sk_live --length 40
 
 # Diceware passphrase, 8 words (~103 bits, secure through 2050).
-keygenerator passphrase
+secretgenerator passphrase
 
 # 32-byte machine-to-machine secret (256 bits, base64url).
-keygenerator secret
+secretgenerator secret
 
 # Estimate the strength of an existing password.
-echo -n 'Tr0ub4dor&3' | keygenerator entropy --show-crack-time
+echo -n 'Tr0ub4dor&3' | secretgenerator entropy --show-crack-time
 ```
 
 See [docs/SUBCOMMANDS.md](docs/SUBCOMMANDS.md) for every flag of every
@@ -108,7 +108,7 @@ subcommand.
 ## Output schema
 
 ```sh
-keygenerator --json --show-crack-time -n 24
+secretgenerator --json --show-crack-time -n 24
 ```
 
 ```json
@@ -141,7 +141,7 @@ The full schema is published as [schemas/output-v1.json](schemas/output-v1.json)
 ## Go library
 
 ```go
-import "github.com/rafaelperoco/keygenerator/pkg/keygen"
+import "github.com/rafaelperoco/secretgenerator/pkg/keygen"
 
 res, err := keygen.Password(keygen.PasswordOptions{
     Length:          24,

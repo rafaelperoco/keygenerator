@@ -1,4 +1,4 @@
-module github.com/rafaelperoco/keygenerator
+module github.com/rafaelperoco/secretgenerator
 
 go 1.23
 

@@ -2,13 +2,13 @@
 
 ## Reporting a vulnerability
 
-If you discover a security issue in keygenerator, please **do not open a public
-GitHub issue**. Instead, file a [private security advisory](https://github.com/rafaelperoco/keygenerator/security/advisories/new)
+If you discover a security issue in secretgenerator, please **do not open a public
+GitHub issue**. Instead, file a [private security advisory](https://github.com/rafaelperoco/secretgenerator/security/advisories/new)
 on this repository.
 
 Include:
 
-- The version (`keygenerator --json | jq .version`) you tested against.
+- The version (`secretgenerator --json | jq .version`) you tested against.
 - A reproducer (command line, expected vs. actual behavior).
 - Your assessment of impact: who is affected, what they could do.
 - Optional: a suggested fix.
@@ -28,7 +28,7 @@ request anonymity.
 
 ## Threat model
 
-keygenerator is designed under these assumptions:
+secretgenerator is designed under these assumptions:
 
 ### In scope
 
@@ -43,7 +43,7 @@ keygenerator is designed under these assumptions:
 4. **Adversary runs other processes on the same machine.** Partial protection:
    `--stdin-params` avoids leaking arguments to `ps(1)`. Process memory is
    beyond our scope.
-5. **AI agent invokes keygenerator and surfaces output to a downstream system.**
+5. **AI agent invokes secretgenerator and surfaces output to a downstream system.**
    Counter: the JSON contract is versioned (`schema_version`), every record
    carries `request_id` for correlation, and `--audit-log` provides post-hoc
    traceability.
@@ -54,7 +54,7 @@ keygenerator is designed under these assumptions:
 
 ### Out of scope
 
-- **Compromised OS entropy source.** keygenerator reads from `crypto/rand`,
+- **Compromised OS entropy source.** secretgenerator reads from `crypto/rand`,
   which delegates to the OS CSPRNG (`getrandom(2)` on Linux, `arc4random_buf`
   on macOS/BSD, `BCryptGenRandom` on Windows). If your kernel cannot supply
   real entropy, no userspace tool can recover. See [docs/CRYPTO.md](docs/CRYPTO.md).
@@ -63,7 +63,7 @@ keygenerator is designed under these assumptions:
   copies. Hardware enclaves (TPM, Secure Enclave) are out of scope.
 - **Side-channel attacks against the generator.** Constant-time guarantees
   are not claimed. Generation time is dominated by `rand.Reader.Read`.
-- **The legitimacy of the verifier on the receiving end.** keygenerator emits
+- **The legitimacy of the verifier on the receiving end.** secretgenerator emits
   credentials; what an attacker can do with them depends on how the consumer
   validates and stores them.
 
@@ -78,7 +78,7 @@ keygenerator is designed under these assumptions:
 
 ## Compliance
 
-keygenerator's defaults align with:
+secretgenerator's defaults align with:
 
 - [NIST SP 800-63B Rev. 4](https://pages.nist.gov/800-63-4/sp800-63b.html) (memorized secret guidance, finalized July 2025)
 - [NIST SP 800-131A Rev. 3](https://csrc.nist.gov/pubs/sp/800/131/a/r3/ipd) (cryptographic strength transitions, 112-bit floor through 2030, 128-bit thereafter)

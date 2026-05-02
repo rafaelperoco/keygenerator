@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0] — 2026-04-29
 
-This is a complete rewrite of keygenerator into an auditable standard for
+This is a complete rewrite of secretgenerator into an auditable standard for
 random credential generation by AI agents and automated systems. **Not
 backwards compatible with v1.**
 
@@ -47,7 +47,7 @@ backwards compatible with v1.**
 - DataGenetics 2012 weak-PIN blocklist (top 20) + structural rejection rules
   (sequences, repetitions, calendar years) for `pin`.
 - Public Go API at `pkg/keygen` with stability promise.
-- Distroless multi-arch container image at `ghcr.io/rafaelperoco/keygenerator`.
+- Distroless multi-arch container image at `ghcr.io/rafaelperoco/secretgenerator`.
 - SLSA Level 3 build provenance.
 - Cosign keyless signatures (Sigstore/Fulcio) on all release artifacts.
 - CycloneDX/SPDX SBOMs with each release archive.
@@ -75,11 +75,11 @@ backwards compatible with v1.**
 
 - v1 flags `--letters` (`-l`) and `--special` (`-s`). Replaced by `--charset`
   (`-c`) with named, versioned identifiers.
-- v1 binary name `pwdgen`. The binary is `keygenerator`.
+- v1 binary name `pwdgen`. The binary is `secretgenerator`.
 
 ### Changed
 
-- Module path: `module main` → `github.com/rafaelperoco/keygenerator`.
+- Module path: `module main` → `github.com/rafaelperoco/secretgenerator`.
 - Minimum Go version: 1.23.
 - Build flags: `-trimpath -buildvcs=true` for reproducible builds.
 
@@ -87,12 +87,12 @@ backwards compatible with v1.**
 
 | v1                     | v2                                                        |
 | ---------------------- | --------------------------------------------------------- |
-| `pwdgen`               | `keygenerator`                                            |
-| `pwdgen -l -n 20`      | `keygenerator -c alphanum-v1 -n 20`                       |
-| `pwdgen -s -n 20`      | `keygenerator -c alphanum-symbols-v1 -n 20`               |
-| `pwdgen -e 0Ol1 -n 20` | `keygenerator -e 0Ol1 -n 20` (now produces exactly 20)    |
-| (no equivalent)        | `keygenerator passphrase` (8-word EFF, ~103 bits)         |
-| (no equivalent)        | `keygenerator secret` (32 bytes base64url, machine-grade) |
+| `pwdgen`               | `secretgenerator`                                            |
+| `pwdgen -l -n 20`      | `secretgenerator -c alphanum-v1 -n 20`                       |
+| `pwdgen -s -n 20`      | `secretgenerator -c alphanum-symbols-v1 -n 20`               |
+| `pwdgen -e 0Ol1 -n 20` | `secretgenerator -e 0Ol1 -n 20` (now produces exactly 20)    |
+| (no equivalent)        | `secretgenerator passphrase` (8-word EFF, ~103 bits)         |
+| (no equivalent)        | `secretgenerator secret` (32 bytes base64url, machine-grade) |
 
 The v1.x branch is end of life. No further releases.
 

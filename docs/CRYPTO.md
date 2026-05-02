@@ -1,13 +1,13 @@
-# Cryptographic basis of keygenerator
+# Cryptographic basis of secretgenerator
 
-This document explains the cryptographic primitives keygenerator depends on,
+This document explains the cryptographic primitives secretgenerator depends on,
 the entropy guarantees it inherits from each operating system, and the
 compliance mapping for downstream auditors.
 
 ## Entropy source
 
 All randomness comes from Go's `crypto/rand.Reader`. This is a thin wrapper
-around the operating system's CSPRNG; **keygenerator never implements its
+around the operating system's CSPRNG; **secretgenerator never implements its
 own entropy source**.
 
 | OS                                  | Backend                                                  | Notes                                                                                                                            |
@@ -22,7 +22,7 @@ own entropy source**.
 
 If you are auditing a deployment target, verify the underlying OS provides
 real entropy. Embedded targets, virtualization with bad host configuration,
-and freshly-booted systems can all starve the entropy pool. keygenerator
+and freshly-booted systems can all starve the entropy pool. secretgenerator
 will faithfully reflect whatever bytes the OS provides — including bad ones.
 
 ## Uniform sampling
@@ -67,12 +67,12 @@ Existing content is never truncated.
 ## Memory hygiene
 
 After generating a `[]byte` payload (e.g. raw bytes for `secret`),
-keygenerator zeroizes the slice before returning. **This is best-effort.**
+secretgenerator zeroizes the slice before returning. **This is best-effort.**
 Go's runtime is free to copy values during execution (escape analysis,
 stack-to-heap promotion, garbage collection); we cannot reach those copies.
 
 Callers with hard memory-residency requirements (e.g. wallet seed
-generation) should run keygenerator in a memory-restricted environment
+generation) should run secretgenerator in a memory-restricted environment
 (separate process, swap disabled, page-locked memory) and pipe the output
 directly into the consumer. The CLI's `--stdin-params` flag exists
 specifically to avoid leaking arguments through `/proc/<pid>/cmdline`.
@@ -102,24 +102,24 @@ operation); we never return a partially-random UUID.
 | `entropy`                     | n/a             | Reports observed entropy of input                          | n/a                            | n/a                                        |
 
 The `pin` row is intentional: PINs are never appropriate as standalone
-authenticators. keygenerator requires `--acknowledge-low-entropy` to even
+authenticators. secretgenerator requires `--acknowledge-low-entropy` to even
 emit one, and the JSON output carries a warning. The compliance value of
 this subcommand is that it generates _uniform_ PINs, rejecting weak
 patterns (top-20 DataGenetics 2012 list, sequences, repetitions, calendar
 years), unlike user-chosen PINs which are heavily biased toward `0000`,
 `1234`, and birth years.
 
-## What keygenerator does not provide
+## What secretgenerator does not provide
 
 - **Key derivation.** Use Argon2id, scrypt, or PBKDF2-HMAC-SHA-256 (in that
-  preference order) for password verification. keygenerator generates raw
+  preference order) for password verification. secretgenerator generates raw
   credentials; deriving keys for actual cryptographic operations is the
   consumer's responsibility.
 - **Constant-time comparison.** Use `crypto/subtle.ConstantTimeCompare` to
   validate user-supplied credentials against a stored hash.
 - **Encryption.** Use `crypto/aes` with `crypto/cipher.NewGCM` for symmetric
   encryption; `crypto/ed25519` for asymmetric signing; `crypto/ecdh` for
-  key exchange. keygenerator's outputs are suitable as inputs to those
+  key exchange. secretgenerator's outputs are suitable as inputs to those
   primitives but are not themselves encrypted.
 
 ## References

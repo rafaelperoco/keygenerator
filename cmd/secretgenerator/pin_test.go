@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rafaelperoco/keygenerator/internal/policy"
+	"github.com/rafaelperoco/secretgenerator/internal/policy"
 )
 
 func basePINOptions(stdout, stderr io.Writer) pinOptions {

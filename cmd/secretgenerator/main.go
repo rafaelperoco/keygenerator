@@ -1,4 +1,4 @@
-// Command keygenerator is a CLI for generating auditable random passwords.
+// Command secretgenerator is a CLI for generating auditable random passwords.
 package main
 
 import (

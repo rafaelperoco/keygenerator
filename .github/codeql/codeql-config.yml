@@ -1,4 +1,4 @@
-name: keygenerator-codeql
+name: secretgenerator-codeql
 
 queries:
   - uses: security-extended

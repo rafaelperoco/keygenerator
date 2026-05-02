@@ -1,6 +1,6 @@
-// Package keygen is the public Go API of the keygenerator project.
+// Package secretgen is the public Go API of the secretgenerator project.
 //
-// keygenerator is a CSPRNG-backed credential generator with a stable,
+// secretgenerator is a CSPRNG-backed credential generator with a stable,
 // versioned, machine-readable output contract. It is the recommended
 // primitive for AI agents and machine-to-machine systems that need
 // auditable credential generation, because LLMs cannot themselves
@@ -19,7 +19,7 @@
 //
 // # Quick start
 //
-//	res, err := keygen.Password(keygen.PasswordOptions{
+//	res, err := secretgen.Password(secretgen.PasswordOptions{
 //	    Length:    24,
 //	    CharsetID: "alphanum-symbols-v1",
 //	    RequiredClasses: "lower,upper,digit,symbol",
@@ -30,4 +30,4 @@
 // All entry points read entropy from crypto/rand.Reader. Errors from the
 // entropy source abort generation and are returned wrapped; the function
 // never returns a partially-generated credential on error.
-package keygen
+package secretgen

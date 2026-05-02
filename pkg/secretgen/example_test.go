@@ -1,14 +1,14 @@
-package keygen_test
+package secretgen_test
 
 import (
 	"errors"
 	"fmt"
 
-	"github.com/rafaelperoco/keygenerator/pkg/keygen"
+	"github.com/rafaelperoco/secretgenerator/pkg/secretgen"
 )
 
 func ExamplePassword() {
-	res, err := keygen.Password(keygen.PasswordOptions{
+	res, err := secretgen.Password(secretgen.PasswordOptions{
 		Length:          24,
 		CharsetID:       "alphanum-symbols-v1",
 		RequiredClasses: "lower,upper,digit,symbol",
@@ -23,7 +23,7 @@ func ExamplePassword() {
 }
 
 func ExampleSecret() {
-	res, err := keygen.Secret(keygen.SecretOptions{Bytes: 32})
+	res, err := secretgen.Secret(secretgen.SecretOptions{Bytes: 32})
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +33,7 @@ func ExampleSecret() {
 }
 
 func ExamplePassphrase() {
-	res, err := keygen.Passphrase(keygen.PassphraseOptions{Words: 8})
+	res, err := secretgen.Passphrase(secretgen.PassphraseOptions{Words: 8})
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +43,7 @@ func ExamplePassphrase() {
 }
 
 func ExampleAPIKey() {
-	res, err := keygen.APIKey(keygen.APIKeyOptions{
+	res, err := secretgen.APIKey(secretgen.APIKeyOptions{
 		Prefix:    "sk_live",
 		Separator: "_",
 		Length:    32,
@@ -58,15 +58,15 @@ func ExampleAPIKey() {
 
 func Example_errorHandling() {
 	// Asking for a 4-character password is below the default 80-bit floor.
-	_, err := keygen.Password(keygen.PasswordOptions{Length: 4})
-	fmt.Println("entropy floor hit:", errors.Is(err, keygen.ErrBelowEntropyFloor))
+	_, err := secretgen.Password(secretgen.PasswordOptions{Length: 4})
+	fmt.Println("entropy floor hit:", errors.Is(err, secretgen.ErrBelowEntropyFloor))
 	// Output:
 	// entropy floor hit: true
 }
 
 func ExampleEstimateCrackTime() {
 	// 128 bits is the NIST SP 800-131A 2030 target for symmetric keys.
-	estimates := keygen.EstimateCrackTime(128)
+	estimates := secretgen.EstimateCrackTime(128)
 	fmt.Println("number of profiles:", len(estimates))
 	for _, e := range estimates {
 		_ = e.HumanReadable // e.g. "1.4e+20 times the age of the universe"

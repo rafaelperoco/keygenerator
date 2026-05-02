@@ -1,4 +1,4 @@
-// Package e2e exercises the compiled keygenerator binary end-to-end.
+// Package e2e exercises the compiled secretgenerator binary end-to-end.
 // It builds the binary into a tempdir, runs it with various flag
 // combinations, and validates stdout/stderr/exit codes against the
 // public CLI contract.
@@ -17,10 +17,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/rafaelperoco/keygenerator/internal/audit"
+	"github.com/rafaelperoco/secretgenerator/internal/audit"
 )
 
-// Documented exit codes (mirror cmd/keygenerator/exit.go). exitRNGFailure
+// Documented exit codes (mirror cmd/secretgenerator/exit.go). exitRNGFailure
 // (4) is intentionally not tested at the E2E layer because triggering a
 // real entropy-source failure is impractical from outside the process;
 // the unit test in internal/generator covers it directly.
@@ -46,7 +46,7 @@ func keygenBinary(t *testing.T) string {
 			buildErr = err
 			return
 		}
-		bin := filepath.Join(dir, "keygenerator")
+		bin := filepath.Join(dir, "secretgenerator")
 		if runtime.GOOS == "windows" {
 			bin += ".exe"
 		}
@@ -59,7 +59,7 @@ func keygenBinary(t *testing.T) string {
 		cmd := exec.Command("go", "build",
 			"-ldflags=-X 'main.version=e2e' -X 'main.commit=test' -X 'main.buildDate=1970-01-01T00:00:00Z'",
 			"-o", bin,
-			"./cmd/keygenerator")
+			"./cmd/secretgenerator")
 		cmd.Dir = root
 		out, err := cmd.CombinedOutput()
 		if err != nil {
@@ -69,7 +69,7 @@ func keygenBinary(t *testing.T) string {
 		binaryPath = bin
 	})
 	if buildErr != nil {
-		t.Fatalf("build keygenerator: %v", buildErr)
+		t.Fatalf("build secretgenerator: %v", buildErr)
 	}
 	return binaryPath
 }
