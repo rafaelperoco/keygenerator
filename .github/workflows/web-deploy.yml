@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - "web/**"
+      - "internal/**"
+      - "pkg/**"
+      - "go.mod"
+      - "go.sum"
       - ".github/workflows/web-deploy.yml"
   workflow_dispatch:
 
@@ -33,10 +37,27 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
+      - name: Set up Go (for TinyGo build of WASM)
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.2"
+          cache-dependency-path: go.sum
+
+      - name: Install TinyGo
+        env:
+          TINYGO_VERSION: "0.41.1"
+        run: |
+          set -euo pipefail
+          curl -sSL "https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/tinygo${TINYGO_VERSION}.linux-amd64.tar.gz" \
+            -o /tmp/tinygo.tgz
+          sudo tar -xzf /tmp/tinygo.tgz -C /usr/local/
+          echo "/usr/local/tinygo/bin" >> "$GITHUB_PATH"
+          /usr/local/tinygo/bin/tinygo version
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Astro
+      - name: Build (WASM + Astro)
         run: npm run build
 
       - uses: actions/configure-pages@v5
