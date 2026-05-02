@@ -9,6 +9,7 @@ permissions:
   contents: write
   packages: write
   id-token: write
+  security-events: write
 
 env:
   GO_VERSION: "1.26.2"
@@ -163,7 +164,11 @@ jobs:
       # upload cosmetics block it.
       - name: Compute artifact SHA-256 hashes for SLSA
         id: hashes
-        if: steps.goreleaser.outcome == 'success'
+        # always() disarms the implicit "skip if any previous step failed"
+        # behavior; combined with the outcome guard, this step runs only
+        # when goreleaser actually produced artifacts, regardless of
+        # whether the cosmetic SARIF upload succeeded.
+        if: always() && steps.goreleaser.outcome == 'success'
         env:
           ARTIFACTS: '${{ steps.goreleaser.outputs.artifacts }}'
         run: |
