@@ -136,6 +136,7 @@ docker_signs:
 
 brews:
   - name: keygenerator
+    skip_upload: '{{ if eq .Env.HOMEBREW_TAP_TOKEN "" }}true{{ else }}false{{ end }}'
     repository:
       owner: rafaelperoco
       name: homebrew-tap

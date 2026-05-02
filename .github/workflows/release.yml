@@ -62,10 +62,15 @@ jobs:
           cosign-release: v2.4.1
 
       - name: Install Trivy
-        uses: aquasecurity/setup-trivy@v0.2.6
-        with:
-          version: v0.58.0
-          cache: true
+        env:
+          TRIVY_VERSION: 0.70.0
+        run: |
+          set -euo pipefail
+          curl -sSL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
+            -o /tmp/trivy.tgz
+          tar -xzf /tmp/trivy.tgz -C /tmp/ trivy
+          sudo mv /tmp/trivy /usr/local/bin/trivy
+          trivy --version
 
       - name: Run GoReleaser
         id: goreleaser
@@ -76,7 +81,11 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          # Optional: present when the homebrew-tap publish secret has been
+          # configured. Empty string when absent; goreleaser brew config
+          # uses this to skip_upload so the release does not block on the
+          # tap repo / token existing.
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN || '' }}
 
       # Gate: scan generated SBOMs against Trivy's CVE database. govulncheck
       # already ran as a CI gate against the source; this is a second opinion
@@ -109,21 +118,23 @@ jobs:
             --ignore-unfixed \
             "$IMAGE"
 
-      - name: Trivy SARIF upload (Security tab)
-        if: always()
+      - name: Generate Trivy SARIF reports
+        if: success()
         run: |
           set -euo pipefail
           shopt -s nullglob
+          mkdir -p trivy-sarif
           for sbom in dist/*.sbom.json; do
-            base=$(basename "$sbom")
-            trivy sbom --format sarif --output "trivy-${base}.sarif" "$sbom" || true
+            base=$(basename "$sbom" .sbom.json)
+            trivy sbom --format sarif --output "trivy-sarif/${base}.sarif" "$sbom" || true
           done
+          ls -la trivy-sarif/ || true
 
       - name: Upload Trivy SARIF to Security tab
-        if: always()
+        if: success() && hashFiles('trivy-sarif/*.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: ./
+          sarif_file: trivy-sarif
           category: trivy-release
 
       - name: Compute artifact SHA-256 hashes for SLSA
