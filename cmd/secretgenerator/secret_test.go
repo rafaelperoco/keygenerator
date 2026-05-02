@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rafaelperoco/keygenerator/internal/audit"
+	"github.com/rafaelperoco/secretgenerator/internal/audit"
 )
 
 func baseSecretOptions(stdout, stderr io.Writer) secretOptions {

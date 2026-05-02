@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rafaelperoco/keygenerator/internal/words"
+	"github.com/rafaelperoco/secretgenerator/internal/words"
 )
 
 func basePassphraseOptions(stdout, stderr io.Writer) passphraseOptions {

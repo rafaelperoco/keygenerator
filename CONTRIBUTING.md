@@ -1,4 +1,4 @@
-# Contributing to keygenerator
+# Contributing to secretgenerator
 
 Thanks for considering a contribution. This project's audit story depends on
 every change passing through the same gates.
@@ -6,8 +6,8 @@ every change passing through the same gates.
 ## Development setup
 
 ```sh
-git clone https://github.com/rafaelperoco/keygenerator
-cd keygenerator
+git clone https://github.com/rafaelperoco/secretgenerator
+cd secretgenerator
 go build ./...
 go test ./...
 ```
@@ -108,7 +108,7 @@ chain pipeline before any GA tag.
 
 ## Questions
 
-Open a [Discussions thread](https://github.com/rafaelperoco/keygenerator/discussions)
-for design questions. Use [Issues](https://github.com/rafaelperoco/keygenerator/issues)
-for bugs and feature requests. Use [Security Advisories](https://github.com/rafaelperoco/keygenerator/security/advisories/new)
+Open a [Discussions thread](https://github.com/rafaelperoco/secretgenerator/discussions)
+for design questions. Use [Issues](https://github.com/rafaelperoco/secretgenerator/issues)
+for bugs and feature requests. Use [Security Advisories](https://github.com/rafaelperoco/secretgenerator/security/advisories/new)
 for vulnerabilities (see `SECURITY.md`).

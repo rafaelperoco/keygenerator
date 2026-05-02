@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/rafaelperoco/keygenerator/internal/charset"
+	"github.com/rafaelperoco/secretgenerator/internal/charset"
 )
 
 // ErrBelowEntropyFloor is returned when computed entropy is below the

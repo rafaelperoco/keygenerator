@@ -5,7 +5,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/rafaelperoco/keygenerator/internal/charset"
+	"github.com/rafaelperoco/secretgenerator/internal/charset"
 )
 
 func TestEntropyBits(t *testing.T) {

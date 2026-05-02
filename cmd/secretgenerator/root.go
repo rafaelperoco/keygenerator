@@ -7,10 +7,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/rafaelperoco/keygenerator/internal/audit"
-	"github.com/rafaelperoco/keygenerator/internal/charset"
-	"github.com/rafaelperoco/keygenerator/internal/generator"
-	"github.com/rafaelperoco/keygenerator/internal/policy"
+	"github.com/rafaelperoco/secretgenerator/internal/audit"
+	"github.com/rafaelperoco/secretgenerator/internal/charset"
+	"github.com/rafaelperoco/secretgenerator/internal/generator"
+	"github.com/rafaelperoco/secretgenerator/internal/policy"
 	"github.com/spf13/cobra"
 )
 
@@ -36,13 +36,13 @@ type stdinPasswordRequest struct {
 }
 
 // newRootCmd builds the cobra command tree. The root command, when invoked
-// without a subcommand, behaves identically to `keygenerator password` —
+// without a subcommand, behaves identically to `secretgenerator password` —
 // it shares the same flag set and runner as the password subcommand.
 func newRootCmd() *cobra.Command {
 	opts := &runOptions{commonOpts: newCommonOpts()}
 
 	root := &cobra.Command{
-		Use:           "keygenerator",
+		Use:           "secretgenerator",
 		Short:         "Generate auditable random passwords",
 		Long:          longDescription(),
 		SilenceUsage:  true,
@@ -93,7 +93,7 @@ func addPasswordFlags(cmd *cobra.Command, opts *runOptions) {
 }
 
 func longDescription() string {
-	return `keygenerator produces random passwords with documented entropy and a
+	return `secretgenerator produces random passwords with documented entropy and a
 machine-readable audit trail. Suitable for invocation by AI agents and
 automated systems that need verifiable provenance for generated secrets.`
 }

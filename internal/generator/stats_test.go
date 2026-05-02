@@ -7,7 +7,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/rafaelperoco/keygenerator/internal/charset"
+	"github.com/rafaelperoco/secretgenerator/internal/charset"
 )
 
 // TestGenerate_ChiSquaredUniformity is a statistical sanity check that

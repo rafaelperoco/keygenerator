@@ -6,10 +6,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/rafaelperoco/keygenerator/internal/audit"
-	"github.com/rafaelperoco/keygenerator/internal/charset"
-	"github.com/rafaelperoco/keygenerator/internal/generator"
-	"github.com/rafaelperoco/keygenerator/internal/policy"
+	"github.com/rafaelperoco/secretgenerator/internal/audit"
+	"github.com/rafaelperoco/secretgenerator/internal/charset"
+	"github.com/rafaelperoco/secretgenerator/internal/generator"
+	"github.com/rafaelperoco/secretgenerator/internal/policy"
 	"github.com/spf13/cobra"
 )
 

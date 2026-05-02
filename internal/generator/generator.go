@@ -11,7 +11,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/rafaelperoco/keygenerator/internal/charset"
+	"github.com/rafaelperoco/secretgenerator/internal/charset"
 )
 
 // ErrClassExhausted is returned when rejection sampling cannot satisfy

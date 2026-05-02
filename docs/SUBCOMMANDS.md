@@ -1,6 +1,6 @@
 # Subcommand reference
 
-keygenerator exposes six subcommands. Each has its own flag set and entropy
+secretgenerator exposes six subcommands. Each has its own flag set and entropy
 floor; all share the same output schema and audit-log format.
 
 | Subcommand   | Default            | Floor (bits) | Recommended use                            |
@@ -38,8 +38,8 @@ All generation subcommands share these flags via `addCommonFlags`:
 ## password
 
 ```
-keygenerator password [flags]
-keygenerator [flags]    # bare invocation is shorthand for `password`
+secretgenerator password [flags]
+secretgenerator [flags]    # bare invocation is shorthand for `password`
 ```
 
 Generates a random password from a named charset.
@@ -47,7 +47,7 @@ Generates a random password from a named charset.
 | Flag                 | Default       | Notes                                                                                                                                             |
 | -------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `-n, --length`       | 20            | Length of the password in characters.                                                                                                             |
-| `-c, --charset`      | `alphanum-v1` | One of the named charsets (see `keygenerator -h` for the full list).                                                                              |
+| `-c, --charset`      | `alphanum-v1` | One of the named charsets (see `secretgenerator -h` for the full list).                                                                              |
 | `-e, --exclude`      | (none)        | Runes to remove from the charset _before_ generation. v1 had a bug where exclusion happened post-generation, shrinking the output; v2 fixes this. |
 | `--require-classes`  | (none)        | Comma-separated `lower,upper,digit,symbol`. Generation uses rejection sampling until all required classes are present.                            |
 | `--min-entropy-bits` | 80            | Floor the computed entropy must clear. Set to 0 to disable.                                                                                       |
@@ -57,24 +57,24 @@ Generates a random password from a named charset.
 
 ```sh
 # Default 20-char alphanumeric.
-keygenerator
+secretgenerator
 
 # 32 chars with all four classes guaranteed, machine-readable.
-keygenerator --json -n 32 -c alphanum-symbols-v1 \
+secretgenerator --json -n 32 -c alphanum-symbols-v1 \
   --require-classes lower,upper,digit,symbol
 
 # 16 chars excluding visually confusable characters.
-keygenerator -n 16 -e '0Ol1iI'
+secretgenerator -n 16 -e '0Ol1iI'
 
 # Read flags from stdin, audit to a file.
 echo '{"length":40,"charset_id":"alphanum-v1"}' | \
-  keygenerator --stdin-params --json --audit-log /var/log/keygen.jsonl
+  secretgenerator --stdin-params --json --audit-log /var/log/keygen.jsonl
 ```
 
 ## passphrase
 
 ```
-keygenerator passphrase [flags]
+secretgenerator passphrase [flags]
 ```
 
 Generates a diceware passphrase from the EFF Large Wordlist (7776 words,
@@ -93,19 +93,19 @@ Generates a diceware passphrase from the EFF Large Wordlist (7776 words,
 
 ```sh
 # Default 8 words.
-keygenerator passphrase
+secretgenerator passphrase
 
 # Wallet-grade 10 words.
-keygenerator passphrase -w 10 --json --show-crack-time
+secretgenerator passphrase -w 10 --json --show-crack-time
 
 # Compatibility for a legacy site requiring upper + digit.
-keygenerator passphrase --capitalize --digit-suffix
+secretgenerator passphrase --capitalize --digit-suffix
 ```
 
 ## secret
 
 ```
-keygenerator secret [flags]
+secretgenerator secret [flags]
 ```
 
 Generates raw random bytes encoded as a printable string. **Recommended for
@@ -123,19 +123,19 @@ machine-to-machine use** when there is no human memorization burden.
 
 ```sh
 # Default 32 bytes → 43 char base64url.
-keygenerator secret
+secretgenerator secret
 
 # 64-byte (512-bit) hex secret with a Stripe-style prefix.
-keygenerator secret -b 64 -E hex --prefix "sk_live_"
+secretgenerator secret -b 64 -E hex --prefix "sk_live_"
 
 # JSON for piping to a secret manager.
-keygenerator secret --json | jq -r .password | aws secretsmanager put-secret-value ...
+secretgenerator secret --json | jq -r .password | aws secretsmanager put-secret-value ...
 ```
 
 ## api-key
 
 ```
-keygenerator api-key [flags]
+secretgenerator api-key [flags]
 ```
 
 Generates a token in the `<prefix><separator><base62-body>` form used by
@@ -153,15 +153,15 @@ Stripe (`sk_live_…`), GitHub (`ghp_…`), Slack (`xoxb-…`), Anthropic
 ### Examples
 
 ```sh
-keygenerator api-key                                     # sk_<32 base62>
-keygenerator api-key --prefix ghp                        # ghp_<32 base62>
-keygenerator api-key --prefix sk-ant --separator '-' -n 40
+secretgenerator api-key                                     # sk_<32 base62>
+secretgenerator api-key --prefix ghp                        # ghp_<32 base62>
+secretgenerator api-key --prefix sk-ant --separator '-' -n 40
 ```
 
 ## pin
 
 ```
-keygenerator pin --acknowledge-low-entropy [flags]
+secretgenerator pin --acknowledge-low-entropy [flags]
 ```
 
 Generates a numeric PIN of `--digits` length, rejecting candidates that
@@ -184,14 +184,14 @@ used as standalone authenticators.
 ### Example
 
 ```sh
-keygenerator pin --acknowledge-low-entropy --digits 6 --json
+secretgenerator pin --acknowledge-low-entropy --digits 6 --json
 ```
 
 ## entropy
 
 ```
-keygenerator entropy [password] [flags]
-keygenerator entropy < password.txt
+secretgenerator entropy [password] [flags]
+secretgenerator entropy < password.txt
 ```
 
 Estimates the entropy of an _existing_ password. Output is the Shannon
@@ -202,8 +202,8 @@ password follows a memorable pattern.
 Read the password from one of:
 
 - The first positional argument (visible in `ps(1)` — not recommended).
-- Stdin (preferred): `keygenerator entropy < password.txt`.
-- `--stdin-params`: `echo '{"password":"..."}' | keygenerator entropy --stdin-params --json`.
+- Stdin (preferred): `secretgenerator entropy < password.txt`.
+- `--stdin-params`: `echo '{"password":"..."}' | secretgenerator entropy --stdin-params --json`.
 
 In plain mode, the password is never echoed; only the entropy in bits is
 printed. In `--json` mode, the password field is omitted from the schema.
@@ -218,10 +218,10 @@ printed. In `--json` mode, the password field is omitted from the schema.
 ### Example
 
 ```sh
-$ echo -n 'correcthorsebatterystaple' | keygenerator entropy
+$ echo -n 'correcthorsebatterystaple' | secretgenerator entropy
 117.51 bits
 
-$ keygenerator entropy 'Tr0ub4dor&3' --show-crack-time
+$ secretgenerator entropy 'Tr0ub4dor&3' --show-crack-time
 72.10 bits
 entropy: 72.10 bits
 time to crack (average case):

@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rafaelperoco/keygenerator/internal/audit"
+	"github.com/rafaelperoco/secretgenerator/internal/audit"
 )
 
 func baseOptions(stdout, stderr io.Writer) runOptions {
@@ -423,7 +423,7 @@ func TestRunPassword_PlaintextWriteFailureMapsToRNGFailure(t *testing.T) {
 
 func TestNewRootCmd_FlagsRegistered(t *testing.T) {
 	cmd := newRootCmd()
-	if cmd.Use != "keygenerator" {
+	if cmd.Use != "secretgenerator" {
 		t.Errorf("Use = %q", cmd.Use)
 	}
 	for _, name := range []string{

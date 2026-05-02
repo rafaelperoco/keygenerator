@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rafaelperoco/keygenerator/internal/charset"
+	"github.com/rafaelperoco/secretgenerator/internal/charset"
 )
 
 type errReader struct{ err error }

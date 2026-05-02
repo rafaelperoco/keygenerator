@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/rafaelperoco/keygenerator/schemas/output-v1.json",
-  "title": "keygenerator output schema v1",
-  "description": "Machine-readable output emitted by `keygenerator` subcommands when --json is set. Stable across the v2.x major release line.",
+  "$id": "https://secretgenerator.org/schemas/output-v1.json",
+  "title": "secretgenerator output schema v1",
+  "description": "Machine-readable output emitted by `secretgenerator` subcommands when --json is set. Stable across the v2.x major release line.",
   "type": "object",
   "required": [
     "schema_version",

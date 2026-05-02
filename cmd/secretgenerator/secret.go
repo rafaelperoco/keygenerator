@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/rafaelperoco/keygenerator/internal/audit"
-	"github.com/rafaelperoco/keygenerator/internal/policy"
+	"github.com/rafaelperoco/secretgenerator/internal/audit"
+	"github.com/rafaelperoco/secretgenerator/internal/policy"
 	"github.com/spf13/cobra"
 )
 

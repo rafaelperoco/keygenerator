@@ -9,9 +9,9 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/rafaelperoco/keygenerator/internal/audit"
-	"github.com/rafaelperoco/keygenerator/internal/charset"
-	"github.com/rafaelperoco/keygenerator/internal/policy"
+	"github.com/rafaelperoco/secretgenerator/internal/audit"
+	"github.com/rafaelperoco/secretgenerator/internal/charset"
+	"github.com/rafaelperoco/secretgenerator/internal/policy"
 	"github.com/spf13/cobra"
 )
 
@@ -59,7 +59,7 @@ the password follows a memorable pattern (dictionary word, year, name).
 
 Read the password from:
   - the first positional argument (NOT recommended; visible in process listings)
-  - stdin (preferred): keygenerator entropy < password.txt
+  - stdin (preferred): secretgenerator entropy < password.txt
   - --stdin-params with JSON: {"password": "..."}
 
 In plain mode the password is never echoed; only the entropy value is

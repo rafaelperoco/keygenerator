@@ -1,4 +1,4 @@
-package keygen
+package secretgen
 
 import (
 	"crypto/rand"
@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rafaelperoco/keygenerator/internal/audit"
-	"github.com/rafaelperoco/keygenerator/internal/charset"
-	"github.com/rafaelperoco/keygenerator/internal/generator"
-	"github.com/rafaelperoco/keygenerator/internal/policy"
-	"github.com/rafaelperoco/keygenerator/internal/words"
+	"github.com/rafaelperoco/secretgenerator/internal/audit"
+	"github.com/rafaelperoco/secretgenerator/internal/charset"
+	"github.com/rafaelperoco/secretgenerator/internal/generator"
+	"github.com/rafaelperoco/secretgenerator/internal/policy"
+	"github.com/rafaelperoco/secretgenerator/internal/words"
 )
 
 // SchemaVersion is the version of the Result struct's contract. It mirrors
@@ -84,7 +84,7 @@ var (
 )
 
 // PasswordOptions controls the Password function. All fields are optional;
-// zero values yield the same defaults as the `keygenerator password` CLI
+// zero values yield the same defaults as the `secretgenerator password` CLI
 // invocation.
 type PasswordOptions struct {
 	Length          int     // default 20
@@ -198,10 +198,10 @@ func Secret(o SecretOptions) (Result, error) {
 	}
 
 	if !validEncoding(o.Encoding) {
-		return Result{}, fmt.Errorf("keygen: unknown encoding %q", o.Encoding)
+		return Result{}, fmt.Errorf("secretgen: unknown encoding %q", o.Encoding)
 	}
 	if o.Bytes < 0 {
-		return Result{}, fmt.Errorf("keygen: bytes must be > 0, got %d", o.Bytes)
+		return Result{}, fmt.Errorf("secretgen: bytes must be > 0, got %d", o.Bytes)
 	}
 
 	bits := float64(o.Bytes) * 8
@@ -268,7 +268,7 @@ func APIKey(o APIKeyOptions) (Result, error) {
 		o.MinEntropyBits = 128
 	}
 	if strings.ContainsAny(o.Prefix, " \t\n\r") {
-		return Result{}, fmt.Errorf("keygen: prefix must not contain whitespace")
+		return Result{}, fmt.Errorf("secretgen: prefix must not contain whitespace")
 	}
 
 	cs, err := charset.Get("base62-v1")

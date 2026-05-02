@@ -1,6 +1,6 @@
 # Output schema
 
-keygenerator emits a stable, versioned JSON document on stdout when invoked
+secretgenerator emits a stable, versioned JSON document on stdout when invoked
 with `--json`. The same structure (with the password redacted to a SHA-256
 fingerprint) is appended to `--audit-log` files.
 
@@ -19,7 +19,7 @@ This document is the human-readable companion.
 | Reinterpret an existing property's semantics | No — requires schema-version bump |
 
 Consumers that want strict pinning can pass `--require-schema-version=1`,
-which makes keygenerator exit with code 2 if it ever emits a different
+which makes secretgenerator exit with code 2 if it ever emits a different
 schema version.
 
 ## Fields
@@ -98,7 +98,7 @@ brute force), and hardware availability.
 ## Example
 
 ```sh
-$ keygenerator --json -n 24 --show-crack-time
+$ secretgenerator --json -n 24 --show-crack-time
 ```
 
 ```json

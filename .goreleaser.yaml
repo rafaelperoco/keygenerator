@@ -1,6 +1,6 @@
 version: 2
 
-project_name: keygenerator
+project_name: secretgenerator
 
 before:
   hooks:
@@ -8,9 +8,9 @@ before:
     - go mod verify
 
 builds:
-  - id: keygenerator
-    main: ./cmd/keygenerator
-    binary: keygenerator
+  - id: secretgenerator
+    main: ./cmd/secretgenerator
+    binary: secretgenerator
     env:
       - CGO_ENABLED=0
     flags:
@@ -92,7 +92,7 @@ dockers:
       - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.title={{ .ProjectName }}"
       - "--label=org.opencontainers.image.description=Auditable random password generator for AI agents"
-      - "--label=org.opencontainers.image.source=https://github.com/rafaelperoco/keygenerator"
+      - "--label=org.opencontainers.image.source=https://github.com/rafaelperoco/secretgenerator"
       - "--label=org.opencontainers.image.version={{ .Version }}"
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.created={{ .Date }}"
@@ -109,7 +109,7 @@ dockers:
       - "--platform=linux/arm64"
       - "--label=org.opencontainers.image.title={{ .ProjectName }}"
       - "--label=org.opencontainers.image.description=Auditable random password generator for AI agents"
-      - "--label=org.opencontainers.image.source=https://github.com/rafaelperoco/keygenerator"
+      - "--label=org.opencontainers.image.source=https://github.com/rafaelperoco/secretgenerator"
       - "--label=org.opencontainers.image.version={{ .Version }}"
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.created={{ .Date }}"
@@ -135,7 +135,7 @@ docker_signs:
     output: true
 
 brews:
-  - name: keygenerator
+  - name: secretgenerator
     skip_upload: '{{ if eq .Env.HOMEBREW_TAP_TOKEN "" }}true{{ else }}false{{ end }}'
     repository:
       owner: rafaelperoco
@@ -143,22 +143,22 @@ brews:
       branch: main
       token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'
     directory: Formula
-    homepage: 'https://github.com/rafaelperoco/keygenerator'
+    homepage: 'https://github.com/rafaelperoco/secretgenerator'
     description: 'Auditable random password generator for AI agents'
     license: 'MIT'
     test: |
-      system "#{bin}/keygenerator", "--require-schema-version=1", "--json"
+      system "#{bin}/secretgenerator", "--require-schema-version=1", "--json"
 
 release:
   github:
     owner: rafaelperoco
-    name: keygenerator
+    name: secretgenerator
   mode: replace
   draft: false
   prerelease: auto
   name_template: '{{ .ProjectName }} {{ .Version }}'
   header: |
-    ## keygenerator {{ .Version }}
+    ## secretgenerator {{ .Version }}
 
     Auditable random password generator for AI agents. Verified release with SLSA Level 3 provenance, SBOM, and cosign keyless signatures.
 
@@ -170,7 +170,7 @@ release:
     cosign verify-blob \
       --certificate checksums.txt.pem \
       --signature checksums.txt.sig \
-      --certificate-identity-regexp "https://github.com/rafaelperoco/keygenerator" \
+      --certificate-identity-regexp "https://github.com/rafaelperoco/secretgenerator" \
       --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
       checksums.txt
     ```
