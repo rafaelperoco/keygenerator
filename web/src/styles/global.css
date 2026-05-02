@@ -22,6 +22,16 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Mobile-first: never allow accidental horizontal scroll on the document.
+   Internal scrolling containers (pre with overflow-x-auto, tables) still
+   scroll inside their box without dragging the layout. */
+html,
+body {
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 ::selection {
   background: var(--color-accent);
   color: var(--color-bg);

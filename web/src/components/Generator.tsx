@@ -159,7 +159,7 @@ export default function Generator() {
       <p className="text-xs text-[var(--color-mute)]">{SUBCOMMAND_HINT[active]}</p>
 
       {/* Output */}
-      <div className="rounded-lg border border-[var(--color-line)] bg-[var(--color-panel)] p-5">
+      <div className="rounded-lg border border-[var(--color-line)] bg-[var(--color-panel)] p-4 sm:p-5 min-w-0">
         {state.kind === "loading" && (
           <div className="font-mono text-sm text-[var(--color-mute)] flex items-center gap-3">
             <span className="inline-block h-2 w-2 rounded-full bg-[var(--color-accent)] animate-pulse" />
@@ -194,7 +194,7 @@ export default function Generator() {
                   </button>
                 </div>
               </div>
-              <div className="font-mono text-base md:text-lg break-all leading-relaxed text-[var(--color-fg)] select-all">
+              <div className="font-mono text-sm sm:text-base md:text-lg break-all leading-relaxed text-[var(--color-fg)] select-all">
                 {state.result.password}
               </div>
             </div>
@@ -250,14 +250,39 @@ export default function Generator() {
         )}
       </div>
 
-      {/* Threat models */}
+      {/* Threat models — list on mobile, table on >=sm */}
       {state.kind === "ready" && state.cracks.length > 0 && (
-        <details className="rounded-lg border border-[var(--color-line)] bg-[var(--color-panel)]">
-          <summary className="cursor-pointer px-5 py-3 text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] hover:text-[var(--color-fg)]">
+        <details className="rounded-lg border border-[var(--color-line)] bg-[var(--color-panel)] min-w-0">
+          <summary className="cursor-pointer px-4 sm:px-5 py-3 text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] hover:text-[var(--color-fg)]">
             time to break (5 attacker profiles)
           </summary>
-          <div className="px-5 pb-5">
-            <table className="w-full text-xs font-mono">
+          <div className="px-4 sm:px-5 pb-5">
+            {/* Mobile: stacked rows */}
+            <div className="grid gap-3 sm:hidden">
+              {state.cracks.map((c) => {
+                const profile = profiles.find((p) => p.id === c.profile_id);
+                return (
+                  <div key={c.profile_id} className="border-t border-[var(--color-line)] pt-3 text-xs font-mono">
+                    <div className="text-[var(--color-fg)] break-all">{c.profile_id}</div>
+                    {profile && (
+                      <div className="text-[10px] text-[var(--color-mute)] mt-0.5">
+                        {profile.description}
+                      </div>
+                    )}
+                    <div className="mt-2 flex items-center justify-between gap-3">
+                      <span className="text-[var(--color-mute)] text-[11px] shrink-0">
+                        {profile ? formatRate(profile.guesses_per_second) : "—"}
+                      </span>
+                      <span className="text-[var(--color-fg)] text-right break-words">
+                        {c.human_readable}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Desktop: table */}
+            <table className="hidden sm:table w-full text-xs font-mono">
               <thead>
                 <tr className="text-[var(--color-mute)] text-left">
                   <th className="py-2 font-normal">model</th>
@@ -295,11 +320,11 @@ export default function Generator() {
 
       {/* JSON */}
       {state.kind === "ready" && (
-        <details className="rounded-lg border border-[var(--color-line)] bg-[var(--color-panel)]">
-          <summary className="cursor-pointer px-5 py-3 text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] hover:text-[var(--color-fg)]">
+        <details className="rounded-lg border border-[var(--color-line)] bg-[var(--color-panel)] min-w-0">
+          <summary className="cursor-pointer px-4 sm:px-5 py-3 text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] hover:text-[var(--color-fg)]">
             response.json — schema v{state.result.schema_version}
           </summary>
-          <div className="px-5 pb-5">
+          <div className="px-4 sm:px-5 pb-5">
             <div className="flex justify-end mb-2">
               <button
                 onClick={copyJSON}
@@ -308,7 +333,7 @@ export default function Generator() {
                 {copied === "json" ? "✓ copied" : "copy json"}
               </button>
             </div>
-            <pre className="text-[11px] font-mono leading-relaxed overflow-x-auto whitespace-pre">
+            <pre className="text-[10px] sm:text-[11px] font-mono leading-relaxed overflow-x-auto whitespace-pre max-w-full">
 {JSON.stringify(state.result, null, 2)}
             </pre>
           </div>
@@ -349,39 +374,56 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
 function EntropyBar({ bits }: { bits: number }) {
   const max = 256;
   const pct = Math.min(100, (bits / max) * 100);
-  const marks = [
-    { at: 64, lbl: "guessable" },
-    { at: 80, lbl: "min" },
-    { at: 128, lbl: "strong" },
-    { at: 192, lbl: "agent baseline" },
-    { at: 256, lbl: "max" },
+  // Marks shown at all viewport sizes; the rightmost ones (192, 256) sit
+  // close to the panel edge so we anchor their tooltips by the right edge
+  // to avoid overflow at small widths.
+  const marks: Array<{
+    at: number;
+    lbl: string;
+    align: "left" | "center" | "right";
+  }> = [
+    { at: 64, lbl: "guessable", align: "left" },
+    { at: 80, lbl: "min", align: "center" },
+    { at: 128, lbl: "strong", align: "center" },
+    { at: 192, lbl: "agent", align: "center" },
+    { at: 256, lbl: "max", align: "right" },
   ];
   return (
-    <div className="pt-3 border-t border-[var(--color-line)]">
+    <div className="pt-3 border-t border-[var(--color-line)] min-w-0">
       <div className="text-[10px] uppercase tracking-wider text-[var(--color-mute)] font-mono mb-3">
         entropy
       </div>
-      <div className="relative h-1.5 bg-[var(--color-line)] rounded-full">
+      <div className="relative h-1.5 bg-[var(--color-line)] rounded-full mb-7">
         <div
           className="absolute inset-y-0 left-0 bg-[var(--color-accent)] rounded-full transition-all"
           style={{ width: pct + "%" }}
         />
-        {marks.map((m) => (
-          <span
-            key={m.at}
-            className={
-              "absolute -top-1 flex flex-col items-center font-mono text-[9px] " +
-              (bits >= m.at ? "text-[var(--color-fg)]" : "text-[var(--color-mute)]")
-            }
-            style={{ left: (m.at / max) * 100 + "%", transform: "translateX(-50%)" }}
-          >
-            <span className="block h-3.5 w-px bg-current opacity-60" />
-            <span className="mt-1 whitespace-nowrap">
-              <span className="opacity-70">{m.at}</span>{" "}
-              <span className="opacity-50">{m.lbl}</span>
+        {marks.map((m) => {
+          const transform =
+            m.align === "left"
+              ? "translateX(0)"
+              : m.align === "right"
+              ? "translateX(-100%)"
+              : "translateX(-50%)";
+          return (
+            <span
+              key={m.at}
+              className={
+                "absolute -top-1 flex flex-col items-start font-mono text-[9px] " +
+                (bits >= m.at
+                  ? "text-[var(--color-fg)]"
+                  : "text-[var(--color-mute)]")
+              }
+              style={{ left: (m.at / max) * 100 + "%", transform }}
+            >
+              <span className="block h-3.5 w-px bg-current opacity-60" />
+              <span className="mt-1 whitespace-nowrap">
+                <span className="opacity-70">{m.at}</span>{" "}
+                <span className="opacity-50 hidden sm:inline">{m.lbl}</span>
+              </span>
             </span>
-          </span>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
