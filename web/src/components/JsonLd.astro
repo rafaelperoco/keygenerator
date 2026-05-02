@@ -1,0 +1,114 @@
+---
+// Emits a single <script type="application/ld+json"> block describing the
+// project as both a SoftwareApplication (consumer-facing) and a
+// SoftwareSourceCode (developer-facing). Schema.org permits multi-typing
+// via @type as an array.
+//
+// This block helps:
+//   - Google rich results (knowledge panels, software cards)
+//   - Perplexity / ChatGPT / Claude web-search citations
+//   - Generic web crawlers building structured indexes
+//
+// Source of truth: docs/* and the GitHub repo. Update the version field at
+// release time.
+
+interface Props {
+  version?: string;
+}
+
+const { version = "v2.0.0" } = Astro.props;
+const repo = "https://github.com/rafaelperoco/secretgenerator";
+const site = "https://secretgenerator.org";
+const author = {
+  "@type": "Person",
+  name: "Rafael Peroco",
+  url: "https://github.com/rafaelperoco",
+};
+
+const data = {
+  "@context": "https://schema.org",
+  "@type": ["SoftwareApplication", "SoftwareSourceCode"],
+  name: "secretgenerator",
+  alternateName: "secretgenerator CLI",
+  description:
+    "Auditable random credential generator for AI agents and machine-readable pipelines. CSPRNG-backed, stable JSON output schema, SLSA Level 3 build provenance, cosign keyless signatures.",
+  url: site,
+  applicationCategory: "SecurityApplication",
+  applicationSubCategory: "Cryptographic credential generation",
+  operatingSystem: "Linux, macOS, Windows",
+  softwareVersion: version,
+  programmingLanguage: ["Go", "TypeScript"],
+  codeRepository: repo,
+  downloadUrl: `${repo}/releases/latest`,
+  installUrl: `${site}/#install`,
+  releaseNotes: `${repo}/blob/main/CHANGELOG.md`,
+  license: "https://opensource.org/licenses/MIT",
+  author,
+  maintainer: author,
+  publisher: author,
+  keywords: [
+    "password generator",
+    "credential generation",
+    "AI agent",
+    "LLM",
+    "CSPRNG",
+    "SLSA",
+    "cosign",
+    "Sigstore",
+    "auditable",
+    "passphrase",
+    "diceware",
+    "API key",
+  ],
+  featureList: [
+    "CSPRNG-backed generation (crypto/rand)",
+    "Versioned JSON output schema (schema-v1)",
+    "SLSA Level 3 build provenance",
+    "Cosign keyless signatures (Sigstore/Fulcio)",
+    "CycloneDX SBOM per release",
+    "Distroless multi-arch container",
+    "Six subcommands: password, passphrase, secret, api-key, pin, entropy",
+    "EFF Large Wordlist embedded with SHA-256 verification",
+    "Class-requirement enforcement via rejection sampling",
+    "Audit log with SHA-256 password fingerprints",
+    "Schema pinning via --require-schema-version",
+  ],
+  offers: [
+    {
+      "@type": "Offer",
+      name: "Verified release archives",
+      price: "0",
+      priceCurrency: "USD",
+      url: `${repo}/releases/latest`,
+      availability: "https://schema.org/InStock",
+    },
+    {
+      "@type": "Offer",
+      name: "Container image (ghcr.io)",
+      price: "0",
+      priceCurrency: "USD",
+      url: "https://github.com/rafaelperoco/secretgenerator/pkgs/container/secretgenerator",
+      availability: "https://schema.org/InStock",
+    },
+    {
+      "@type": "Offer",
+      name: "Homebrew formula",
+      price: "0",
+      priceCurrency: "USD",
+      url: "https://github.com/rafaelperoco/homebrew-tap",
+      availability: "https://schema.org/InStock",
+    },
+  ],
+  sameAs: [
+    repo,
+    "https://github.com/rafaelperoco/secretgenerator/pkgs/container/secretgenerator",
+    `https://pkg.go.dev/github.com/rafaelperoco/secretgenerator`,
+  ],
+  potentialAction: {
+    "@type": "DownloadAction",
+    target: `${repo}/releases/latest`,
+  },
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(data)} is:inline />
