@@ -8,8 +8,9 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "npm run build:wasm && astro build",
+    "build": "npm run build:wasm && npm run build:llms && astro build",
     "build:wasm": "cd .. && tinygo build -o web/public/keygen.wasm -target wasm -no-debug ./web/wasm && cp \"$(tinygo env TINYGOROOT)/targets/wasm_exec.js\" web/public/wasm_exec.js",
+    "build:llms": "node scripts/build-llms-txt.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
