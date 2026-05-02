@@ -8,20 +8,23 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "npm run build:wasm && npm run build:llms && astro build",
+    "build": "npm run build:wasm && npm run build:llms && npm run build:og && astro build",
     "build:wasm": "cd .. && tinygo build -o web/public/keygen.wasm -target wasm -no-debug ./web/wasm && cp \"$(tinygo env TINYGOROOT)/targets/wasm_exec.js\" web/public/wasm_exec.js",
     "build:llms": "node scripts/build-llms-txt.mjs",
+    "build:og": "node scripts/build-og-image.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.4",
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.2.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "astro": "^6.2.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "satori": "^0.26.0",
     "tailwindcss": "^4.2.4"
   }
 }
