@@ -40,6 +40,11 @@ jobs:
         run: npm run build
 
       - uses: actions/configure-pages@v5
+        with:
+          # Enable Pages on first run if not yet configured. Lets the
+          # workflow bootstrap GitHub Pages without a manual toggle in
+          # repo settings.
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
