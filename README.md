@@ -156,6 +156,12 @@ for _, e := range secretgen.EstimateCrackTime(res.EntropyBits) {
 
 API stability is documented in `pkg/secretgen/doc.go`.
 
+## Examples in 6 languages
+
+Ready-to-run snippets for Python, Node.js, Ruby, Rust, Bash, and Go live
+under [`examples/`](examples/README.md). All of them produce the same
+schema-v1 output and pin `--require-schema-version=1`.
+
 ## Documentation
 
 - [docs/SUBCOMMANDS.md](docs/SUBCOMMANDS.md) — Every flag of every subcommand.
