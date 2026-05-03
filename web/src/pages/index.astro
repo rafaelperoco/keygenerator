@@ -121,27 +121,54 @@ const installCmd = `go install github.com/rafaelperoco/secretgenerator/cmd/secre
     {/* Install */}
     <section id="install" class="mt-16 sm:mt-24">
       <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] mb-3">install</h2>
-      <h3 class="text-xl sm:text-2xl tracking-tight mb-4 sm:mb-6">Three ways. All verifiable.</h3>
+      <h3 class="text-xl sm:text-2xl tracking-tight mb-4 sm:mb-6">Pick your registry. The release is the same.</h3>
 
-      <div class="grid md:grid-cols-3 gap-3">
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
+          <div class="text-xs font-mono text-[var(--color-mute)] mb-2">npm (zero-install)</div>
+          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">npx -y @secretgenerator/cli password --json</pre>
+        </div>
+        <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
+          <div class="text-xs font-mono text-[var(--color-mute)] mb-2">homebrew (macos / linux)</div>
+          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">brew install rafaelperoco/tap/secretgenerator</pre>
+        </div>
+        <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
+          <div class="text-xs font-mono text-[var(--color-mute)] mb-2">model context protocol</div>
+          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">npx -y @secretgenerator/mcp</pre>
+          <p class="text-[10px] text-[var(--color-mute)] mt-2">Claude Desktop, Cursor, Cline.</p>
+        </div>
         <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
           <div class="text-xs font-mono text-[var(--color-mute)] mb-2">go install</div>
           <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">{installCmd}</pre>
         </div>
         <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
-          <div class="text-xs font-mono text-[var(--color-mute)] mb-2">homebrew (macos / linux)</div>
-          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">brew tap rafaelperoco/tap
-brew install secretgenerator</pre>
+          <div class="text-xs font-mono text-[var(--color-mute)] mb-2">python (pypi)</div>
+          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">pip install secretgenerator-py</pre>
+          <p class="text-[10px] text-[var(--color-mute)] mt-2">Wraps the CLI with idiomatic Python.</p>
+        </div>
+        <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
+          <div class="text-xs font-mono text-[var(--color-mute)] mb-2">rust (crates.io)</div>
+          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">cargo add secretgenerator</pre>
+          <p class="text-[10px] text-[var(--color-mute)] mt-2">Typed bindings around the CLI.</p>
         </div>
         <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
           <div class="text-xs font-mono text-[var(--color-mute)] mb-2">container (distroless, multi-arch)</div>
-          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">docker pull ghcr.io/rafaelperoco/secretgenerator:{version}
-docker run --rm ghcr.io/rafaelperoco/secretgenerator:{version} --json</pre>
+          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">docker run --rm ghcr.io/rafaelperoco/secretgenerator:{version} --json</pre>
+        </div>
+        <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
+          <div class="text-xs font-mono text-[var(--color-mute)] mb-2">github actions</div>
+          <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">- uses: rafaelperoco/secretgenerator/.github/actions/setup-secretgenerator@{version}</pre>
+        </div>
+        <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] min-w-0">
+          <div class="text-xs font-mono text-[var(--color-mute)] mb-2">verified manual</div>
+          <p class="text-[12px] text-[var(--color-mute)]">
+            Download release artifacts and verify cosign + checksums. See <a class="underline decoration-[var(--color-line)] hover:decoration-[var(--color-fg)] text-[var(--color-fg)]" href={`${ghRepo}/blob/main/docs/AUDIT.md`} target="_blank" rel="noopener">docs/AUDIT.md</a>.
+          </p>
         </div>
       </div>
 
       <p class="text-sm text-[var(--color-mute)] mt-4">
-        Verify any release end-to-end with cosign and slsa-verifier — see
+        Every release is signed with cosign keyless and ships SLSA Level 3 build provenance. Verify end-to-end with the procedure in
         <a class="underline decoration-[var(--color-line)] hover:decoration-[var(--color-fg)]" href={`${ghRepo}/blob/main/docs/AUDIT.md`} target="_blank" rel="noopener">docs/AUDIT.md</a>.
       </p>
     </section>
