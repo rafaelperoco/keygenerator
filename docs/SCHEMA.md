@@ -43,14 +43,14 @@ schema version.
 
 ### Optional (omitted when zero/empty)
 
-| Field                  | Type    | Description                                                                                                                                |
-| ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `password`             | string  | The generated credential. Always present in `--json` output for generation subcommands; omitted for `entropy` (which consumes a password). |
-| `excluded_count`       | integer | Number of distinct runes the caller passed to `--exclude`.                                                                                 |
-| `excluded_sha256`      | string  | Hex-encoded SHA-256 of the `--exclude` argument. Lets audit logs correlate exclusion sets without echoing them.                            |
-| `required_classes`     | string  | Comma-separated list of character classes the output is guaranteed to contain (or, for `entropy`, observed in the input).                  |
-| `warnings`             | array   | Strings describing non-fatal advisories (e.g. when `--allow-weak` bypassed the floor or when a compatibility flag was used).               |
-| `crack_time_estimates` | array   | Opt-in (set with `--show-crack-time`). Time-to-break estimates under named attacker profiles.                                              |
+| Field                  | Type    | Description                                                                                                                                 |
+| ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `password`             | string  | The generated credential. Always present in `--json` output for generation subcommands; omitted for `entropy` (which consumes a password).  |
+| `excluded_count`       | integer | Number of distinct runes the caller passed to `--exclude`.                                                                                  |
+| `excluded_sha256`      | string  | Hex-encoded SHA-256 of the `--exclude` argument. Lets audit logs correlate exclusion sets without echoing them.                             |
+| `required_classes`     | string  | Comma-separated list of character classes the output is guaranteed to contain (or, for `entropy`, observed in the input).                   |
+| `warnings`             | array   | Strings describing non-fatal advisories (e.g. when `--allow-weak` bypassed the floor or when a compatibility flag was used).                |
+| `crack_time_estimates` | array   | Opt-in (set with `--show-crack-time`). Time-to-break estimates under named attacker profiles.                                               |
 | `error`                | object  | Present only on the failure path. Carries a stable `code` (e.g. `E_ENTROPY_TOO_LOW`), an English `message`, and an optional curated `hint`. |
 
 ### Audit log additions
@@ -106,13 +106,13 @@ agents see exactly one machine-readable artifact.
 Codes are stable strings; agents should branch on these rather than parse
 the message or rely on integer exit codes:
 
-| code                  | exit | meaning                                                                                              |
-| --------------------- | ---: | ---------------------------------------------------------------------------------------------------- |
-| `E_INVALID_ARGS`      |    2 | Unknown flag, unknown charset, schema-version mismatch, audit-log write failure, malformed stdin     |
-| `E_ENTROPY_TOO_LOW`   |    3 | Computed entropy is below `--min-entropy-bits` and `--allow-weak` was not set                        |
-| `E_RNG_FAILURE`       |    4 | OS entropy source returned an error mid-generation                                                   |
-| `E_CHARSET_EMPTY`     |    5 | `--exclude` reduced the charset below the minimum 2 runes                                            |
-| `E_CLASS_IMPOSSIBLE`  |    6 | `--require-classes` cannot be satisfied (charset lacks the class, or length < class count)           |
+| code                 | exit | meaning                                                                                          |
+| -------------------- | ---: | ------------------------------------------------------------------------------------------------ |
+| `E_INVALID_ARGS`     |    2 | Unknown flag, unknown charset, schema-version mismatch, audit-log write failure, malformed stdin |
+| `E_ENTROPY_TOO_LOW`  |    3 | Computed entropy is below `--min-entropy-bits` and `--allow-weak` was not set                    |
+| `E_RNG_FAILURE`      |    4 | OS entropy source returned an error mid-generation                                               |
+| `E_CHARSET_EMPTY`    |    5 | `--exclude` reduced the charset below the minimum 2 runes                                        |
+| `E_CLASS_IMPOSSIBLE` |    6 | `--require-classes` cannot be satisfied (charset lacks the class, or length < class count)       |
 
 Each code has a curated one-line `hint` documenting the typical fix.
 Hints are advisory and may be empty for codes added in future versions.
