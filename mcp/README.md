@@ -45,16 +45,16 @@ bundle); subsequent invocations are cached.
 
 ## Tools exposed
 
-| tool                     | when to use                                              |
-| ------------------------ | -------------------------------------------------------- |
-| `generate_password`      | general-purpose passwords, named charsets                |
+| tool                     | when to use                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| `generate_password`      | general-purpose passwords, named charsets                        |
 | `generate_passphrase`    | human-memorable secrets, EFF Large Wordlist (8 words ≈ 103 bits) |
-| `generate_secret`        | API tokens, OAuth secrets, JWT keys (recommended for agents) |
-| `generate_api_key`       | `prefix_base62` Stripe-style tokens                      |
-| `generate_pin`           | numeric PINs with weak-pattern rejection                 |
-| `assess_entropy`         | estimate strength of an existing password                |
-| `list_attacker_profiles` | enumerate the 5 named cracking-rate scenarios            |
-| `estimate_crack_time`    | time-to-break under each attacker profile                |
+| `generate_secret`        | API tokens, OAuth secrets, JWT keys (recommended for agents)     |
+| `generate_api_key`       | `prefix_base62` Stripe-style tokens                              |
+| `generate_pin`           | numeric PINs with weak-pattern rejection                         |
+| `assess_entropy`         | estimate strength of an existing password                        |
+| `list_attacker_profiles` | enumerate the 5 named cracking-rate scenarios                    |
+| `estimate_crack_time`    | time-to-break under each attacker profile                        |
 
 Each `generate_*` tool returns a [schema-v1 JSON record](https://secretgenerator.org/schemas/output-v1.json):
 

@@ -72,11 +72,11 @@ the certificate identity against
 
 ## Supported platforms
 
-| OS      | Architectures   |
-| ------- | --------------- |
-| Linux   | x64, arm64      |
-| macOS   | x64, arm64      |
-| Windows | x64             |
+| OS      | Architectures |
+| ------- | ------------- |
+| Linux   | x64, arm64    |
+| macOS   | x64, arm64    |
+| Windows | x64           |
 
 For other platforms, install from source:
 

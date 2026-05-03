@@ -7,3 +7,7 @@
 
 # Built binaries (never commit)
 cmd/secretgenerator/secretgenerator
+
+# Rust example artifacts
+examples/rust/target/
+examples/rust/Cargo.lock

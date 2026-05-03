@@ -16,13 +16,13 @@ floor; all share the same output schema and audit-log format.
 
 All generation subcommands share these flags via `addCommonFlags`:
 
-| Flag                           | Purpose                                                                                            |
-| ------------------------------ | -------------------------------------------------------------------------------------------------- |
-| `--json`                       | Emit a structured schema-v1 JSON record on stdout.                                                 |
-| `--audit-log <path>`           | Append a redacted JSONL audit record to `<path>` (mode 0600).                                      |
-| `--stdin-params`               | Read flags as a JSON object from stdin instead of argv. Avoids leaking sensitive flags to `ps(1)`. |
-| `--require-schema-version <n>` | Fail with exit code 2 unless the binary's output schema matches `<n>`.                             |
-| `--show-crack-time`            | Include `crack_time_estimates` in the JSON output and a human-readable summary in plain mode.      |
+| Flag                           | Purpose                                                                                                                                                                                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--json`                       | Emit a structured schema-v1 JSON record on stdout.                                                                                                                                                                                                                        |
+| `--audit-log <path>`           | Append a redacted JSONL audit record to `<path>` (mode 0600).                                                                                                                                                                                                             |
+| `--stdin-params`               | Read flags as a JSON object from stdin instead of argv. Avoids leaking sensitive flags to `ps(1)`.                                                                                                                                                                        |
+| `--require-schema-version <n>` | Fail with exit code 2 unless the binary's output schema matches `<n>`.                                                                                                                                                                                                    |
+| `--show-crack-time`            | Include `crack_time_estimates` in the JSON output and a human-readable summary in plain mode.                                                                                                                                                                             |
 | `--help-json`                  | Emit a machine-readable JSON description of the command and its flags, then exit. Persistent on the root, available on every subcommand. Output mirrors the OpenAPI parameter shape so agents already familiar with OpenAPI can introspect without learning a new schema. |
 
 ## Exit codes
@@ -48,7 +48,7 @@ Generates a random password from a named charset.
 | Flag                 | Default       | Notes                                                                                                                                             |
 | -------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `-n, --length`       | 20            | Length of the password in characters.                                                                                                             |
-| `-c, --charset`      | `alphanum-v1` | One of the named charsets (see `secretgenerator -h` for the full list).                                                                              |
+| `-c, --charset`      | `alphanum-v1` | One of the named charsets (see `secretgenerator -h` for the full list).                                                                           |
 | `-e, --exclude`      | (none)        | Runes to remove from the charset _before_ generation. v1 had a bug where exclusion happened post-generation, shrinking the output; v2 fixes this. |
 | `--require-classes`  | (none)        | Comma-separated `lower,upper,digit,symbol`. Generation uses rejection sampling until all required classes are present.                            |
 | `--min-entropy-bits` | 80            | Floor the computed entropy must clear. Set to 0 to disable.                                                                                       |

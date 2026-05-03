@@ -58,14 +58,14 @@ Pin the schema with `--require-schema-version=1`.
 
 ## Subcommands
 
-| Subcommand   | Use case                                                                               |
-| ------------ | -------------------------------------------------------------------------------------- |
-| `password`   | Random password from a named charset (default 20 chars, ~119 bits).                    |
-| `passphrase` | Diceware passphrase from the EFF Large Wordlist (default 8 words, ~103 bits).          |
+| Subcommand   | Use case                                                                                |
+| ------------ | --------------------------------------------------------------------------------------- |
+| `password`   | Random password from a named charset (default 20 chars, ~119 bits).                     |
+| `passphrase` | Diceware passphrase from the EFF Large Wordlist (default 8 words, ~103 bits).           |
 | `secret`     | Raw bytes from the OS CSPRNG, encoded as URL-safe base64 (default 32 bytes / 256 bits). |
-| `api-key`    | Token in `prefix_random` form (Stripe-style).                                          |
-| `pin`        | Numeric PIN with weak-PIN blocklist enforced.                                          |
-| `entropy`    | Estimate the entropy and crack time of an existing password.                           |
+| `api-key`    | Token in `prefix_random` form (Stripe-style).                                           |
+| `pin`        | Numeric PIN with weak-PIN blocklist enforced.                                           |
+| `entropy`    | Estimate the entropy and crack time of an existing password.                            |
 
 ```sh
 secretgenerator password --json --show-crack-time

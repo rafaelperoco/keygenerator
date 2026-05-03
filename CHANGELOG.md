@@ -110,8 +110,8 @@ backwards compatible with v1.**
 
 ### Migration from v1
 
-| v1                     | v2                                                        |
-| ---------------------- | --------------------------------------------------------- |
+| v1                     | v2                                                           |
+| ---------------------- | ------------------------------------------------------------ |
 | `pwdgen`               | `secretgenerator`                                            |
 | `pwdgen -l -n 20`      | `secretgenerator -c alphanum-v1 -n 20`                       |
 | `pwdgen -s -n 20`      | `secretgenerator -c alphanum-symbols-v1 -n 20`               |
