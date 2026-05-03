@@ -1,0 +1,71 @@
+name: cli-ci
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cli/**"
+      - ".github/workflows/cli-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "cli/**"
+      - ".github/workflows/cli-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-install:
+    name: build + install (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: cli/package-lock.json
+
+      - name: Install Node deps
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Install cosign (so the install step can verify the keyless signature)
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: v2.4.1
+
+      # Pin to the latest verified alpha while v2.0.0 GA is being cut. Once
+      # the GA tag exists we drop the override and let the package's own
+      # version drive the download.
+      - name: Run postinstall against a real release
+        env:
+          SECRETGENERATOR_VERSION: v2.0.0-alpha.11
+        run: node dist/install.js
+        shell: bash
+
+      - name: Verify the cached binary produces schema-v1 JSON
+        env:
+          SECRETGENERATOR_VERSION: v2.0.0-alpha.11
+        shell: bash
+        run: |
+          set -euo pipefail
+          out=$(node dist/run.js --json -n 16)
+          echo "$out"
+          node -e '
+            const r = JSON.parse(process.argv[1]);
+            if (r.schema_version !== 1) { console.error("schema_version != 1"); process.exit(1); }
+            if (!r.password || r.password.length !== 16) { console.error("bad length"); process.exit(1); }
+            if (!r.entropy_bits) { console.error("missing entropy"); process.exit(1); }
+          ' "$out"
