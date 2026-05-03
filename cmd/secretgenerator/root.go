@@ -99,17 +99,18 @@ automated systems that need verifiable provenance for generated secrets.`
 }
 
 func runPassword(o runOptions) error {
+	e := errCtx{c: o.commonOpts, subcommand: "password"}
 	if o.StdinParams {
 		req, err := readStdinPasswordParams(o.stdin)
 		if err != nil {
-			return fail(ExitInvalidArgs, err)
+			return e.fail(ExitInvalidArgs, err)
 		}
 		applyStdinPassword(&o, req)
 	}
 
 	cs, err := charset.Get(o.CharsetID)
 	if err != nil {
-		return fail(ExitInvalidArgs, err)
+		return e.fail(ExitInvalidArgs, err)
 	}
 
 	excludedCount := 0
@@ -120,22 +121,22 @@ func runPassword(o runOptions) error {
 		excludedSHA = audit.SHA256Hex(o.Exclude)
 		cs, err = charset.Exclude(cs, excludedRunes)
 		if err != nil {
-			return fail(ExitCharsetEmpty, err)
+			return e.fail(ExitCharsetEmpty, err)
 		}
 	}
 
 	requiredClasses, err := policy.ParseClasses(o.RequiredClassesSpec)
 	if err != nil {
-		return fail(ExitInvalidArgs, err)
+		return e.fail(ExitInvalidArgs, err)
 	}
 	if validateErr := policy.ValidateClassesAchievable(cs, o.Length, requiredClasses); validateErr != nil {
-		return fail(ExitClassImpossible, validateErr)
+		return e.fail(ExitClassImpossible, validateErr)
 	}
 
 	bits := policy.EntropyBits(o.Length, cs.Size())
 	var warnings []string
 	if floorErr := policy.EnforceFloor(bits, o.MinEntropyBits, o.AllowWeak); floorErr != nil {
-		return fail(ExitEntropyTooLow, floorErr)
+		return e.fail(ExitEntropyTooLow, floorErr)
 	}
 	if o.MinEntropyBits > 0 && bits < o.MinEntropyBits && o.AllowWeak {
 		warnings = append(warnings,
@@ -149,9 +150,9 @@ func runPassword(o runOptions) error {
 	})
 	if err != nil {
 		if errors.Is(err, generator.ErrClassExhausted) {
-			return fail(ExitClassImpossible, err)
+			return e.fail(ExitClassImpossible, err)
 		}
-		return fail(ExitRNGFailure, err)
+		return e.fail(ExitRNGFailure, err)
 	}
 
 	out := audit.Output{
@@ -167,7 +168,7 @@ func runPassword(o runOptions) error {
 		Warnings:        warnings,
 	}
 
-	return emit(o.commonOpts, out, pw)
+	return emit(e, out, pw)
 }
 
 func writeJSON(w io.Writer, out audit.Output) error {

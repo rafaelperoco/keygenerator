@@ -354,6 +354,99 @@ func TestE2E_SecretEncodings(t *testing.T) {
 	}
 }
 
+// TestE2E_StructuredErrorsInJSON verifies that every error path emits a
+// schema-v1 JSON envelope with a populated Error field when --json is set,
+// rather than plain prose on stderr. Agents branch on the stable string
+// code (E_INVALID_ARGS, etc.) rather than the integer exit code.
+func TestE2E_StructuredErrorsInJSON(t *testing.T) {
+	cases := []struct {
+		name     string
+		args     []string
+		exitCode int
+		wantCode string
+	}{
+		{
+			name:     "invalid charset",
+			args:     []string{"--json", "--charset", "no-such"},
+			exitCode: exitInvalidArgs,
+			wantCode: "E_INVALID_ARGS",
+		},
+		{
+			name:     "entropy too low",
+			args:     []string{"--json", "--length", "4"},
+			exitCode: exitEntropyTooLow,
+			wantCode: "E_ENTROPY_TOO_LOW",
+		},
+		{
+			name:     "charset empty after exclude",
+			args:     []string{"--json", "--charset", "digit-v1", "--exclude", "0123456789", "--min-entropy-bits", "0"},
+			exitCode: exitCharsetEmpty,
+			wantCode: "E_CHARSET_EMPTY",
+		},
+		{
+			name:     "class impossible",
+			args:     []string{"--json", "--charset", "digit-v1", "--require-classes", "symbol", "--min-entropy-bits", "0"},
+			exitCode: exitClassImpossible,
+			wantCode: "E_CLASS_IMPOSSIBLE",
+		},
+		{
+			name:     "schema version mismatch",
+			args:     []string{"--json", "--require-schema-version", "99"},
+			exitCode: exitInvalidArgs,
+			wantCode: "E_INVALID_ARGS",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			stdout, stderr, code := runKeygen(t, tc.args...)
+			if code != tc.exitCode {
+				t.Errorf("exit=%d, want %d (stderr=%q)", code, tc.exitCode, stderr)
+			}
+			if stdout == "" {
+				t.Fatalf("expected JSON envelope on stdout, got empty (stderr=%q)", stderr)
+			}
+			out := decode(t, stdout)
+			if out.SchemaVersion != audit.SchemaVersion {
+				t.Errorf("schema_version = %d", out.SchemaVersion)
+			}
+			if out.Error == nil {
+				t.Fatalf("error field missing from envelope; got %+v", out)
+			}
+			if out.Error.Code != tc.wantCode {
+				t.Errorf("error.code = %q, want %q", out.Error.Code, tc.wantCode)
+			}
+			if out.Error.Message == "" {
+				t.Errorf("error.message empty")
+			}
+			if out.Error.Hint == "" {
+				t.Errorf("error.hint empty (expected curated remediation for known code)")
+			}
+			if out.Subcommand == "" {
+				t.Errorf("subcommand should be populated even on failure")
+			}
+			if out.Version == "" {
+				t.Errorf("version should be populated even on failure (build identity)")
+			}
+			mustValidUUID(t, out.RequestID)
+			// Plain mode (no --json): same args without --json should print
+			// to stderr instead — sanity check that we didn't break that path.
+			plainArgs := []string{}
+			for _, a := range tc.args {
+				if a != "--json" {
+					plainArgs = append(plainArgs, a)
+				}
+			}
+			_, plainStderr, plainCode := runKeygen(t, plainArgs...)
+			if plainCode != tc.exitCode {
+				t.Errorf("plain mode exit=%d, want %d", plainCode, tc.exitCode)
+			}
+			if plainStderr == "" {
+				t.Errorf("plain mode should still emit stderr on failure; got empty")
+			}
+		})
+	}
+}
+
 // --- helpers ---
 
 func decode(t *testing.T, s string) audit.Output {

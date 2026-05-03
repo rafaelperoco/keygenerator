@@ -71,32 +71,33 @@ Default length 32 base62 characters yields ~190 bits of entropy.`,
 }
 
 func runAPIKey(o apiKeyOptions) error {
+	e := errCtx{c: o.commonOpts, subcommand: "api-key"}
 	if o.StdinParams {
 		req, err := readStdinAPIKeyParams(o.stdin)
 		if err != nil {
-			return fail(ExitInvalidArgs, err)
+			return e.fail(ExitInvalidArgs, err)
 		}
 		applyStdinAPIKey(&o, req)
 	}
 	if o.Prefix == "" {
-		return fail(ExitInvalidArgs, fmt.Errorf("prefix must not be empty"))
+		return e.fail(ExitInvalidArgs, fmt.Errorf("prefix must not be empty"))
 	}
 	if strings.ContainsAny(o.Prefix, " \t\n\r") {
-		return fail(ExitInvalidArgs, fmt.Errorf("prefix must not contain whitespace"))
+		return e.fail(ExitInvalidArgs, fmt.Errorf("prefix must not contain whitespace"))
 	}
 	if o.Length <= 0 {
-		return fail(ExitInvalidArgs, fmt.Errorf("length must be > 0, got %d", o.Length))
+		return e.fail(ExitInvalidArgs, fmt.Errorf("length must be > 0, got %d", o.Length))
 	}
 
 	cs, err := charset.Get("base62-v1")
 	if err != nil {
-		return fail(ExitRNGFailure, err)
+		return e.fail(ExitRNGFailure, err)
 	}
 
 	bits := policy.EntropyBits(o.Length, cs.Size())
 	var warnings []string
 	if floorErr := policy.EnforceFloor(bits, o.MinEntropyBits, o.AllowWeak); floorErr != nil {
-		return fail(ExitEntropyTooLow, floorErr)
+		return e.fail(ExitEntropyTooLow, floorErr)
 	}
 	if o.MinEntropyBits > 0 && bits < o.MinEntropyBits && o.AllowWeak {
 		warnings = append(warnings,
@@ -108,7 +109,7 @@ func runAPIKey(o apiKeyOptions) error {
 		Length:  o.Length,
 	})
 	if err != nil {
-		return fail(ExitRNGFailure, err)
+		return e.fail(ExitRNGFailure, err)
 	}
 	token := o.Prefix + o.Separator + body
 
@@ -121,7 +122,7 @@ func runAPIKey(o apiKeyOptions) error {
 		Subcommand:  "api-key",
 		Warnings:    warnings,
 	}
-	return emit(o.commonOpts, out, token)
+	return emit(e, out, token)
 }
 
 func readStdinAPIKeyParams(r io.Reader) (stdinAPIKeyRequest, error) {

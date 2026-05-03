@@ -71,25 +71,26 @@ URLs, HTTP headers, environment variables, and JSON payloads.`,
 }
 
 func runSecret(o secretOptions) error {
+	e := errCtx{c: o.commonOpts, subcommand: "secret"}
 	if o.StdinParams {
 		req, err := readStdinSecretParams(o.stdin)
 		if err != nil {
-			return fail(ExitInvalidArgs, err)
+			return e.fail(ExitInvalidArgs, err)
 		}
 		applyStdinSecret(&o, req)
 	}
 
 	if o.Bytes <= 0 {
-		return fail(ExitInvalidArgs, fmt.Errorf("bytes must be > 0, got %d", o.Bytes))
+		return e.fail(ExitInvalidArgs, fmt.Errorf("bytes must be > 0, got %d", o.Bytes))
 	}
 	if !validEncoding(o.Encoding) {
-		return fail(ExitInvalidArgs, fmt.Errorf("unknown encoding %q (want base64url, base64, base32, hex)", o.Encoding))
+		return e.fail(ExitInvalidArgs, fmt.Errorf("unknown encoding %q (want base64url, base64, base32, hex)", o.Encoding))
 	}
 
 	bits := float64(o.Bytes) * 8
 	var warnings []string
 	if err := policy.EnforceFloor(bits, o.MinEntropyBits, o.AllowWeak); err != nil {
-		return fail(ExitEntropyTooLow, err)
+		return e.fail(ExitEntropyTooLow, err)
 	}
 	if o.MinEntropyBits > 0 && bits < o.MinEntropyBits && o.AllowWeak {
 		warnings = append(warnings,
@@ -98,7 +99,7 @@ func runSecret(o secretOptions) error {
 
 	raw := make([]byte, o.Bytes)
 	if _, err := io.ReadFull(rand.Reader, raw); err != nil {
-		return fail(ExitRNGFailure, fmt.Errorf("entropy source: %w", err))
+		return e.fail(ExitRNGFailure, fmt.Errorf("entropy source: %w", err))
 	}
 	encoded := encode(raw, o.Encoding)
 	zeroize(raw)
@@ -113,7 +114,7 @@ func runSecret(o secretOptions) error {
 		Subcommand:  "secret",
 		Warnings:    warnings,
 	}
-	return emit(o.commonOpts, out, secret)
+	return emit(e, out, secret)
 }
 
 func validEncoding(e string) bool {

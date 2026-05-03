@@ -20,19 +20,42 @@ type CrackTimeEstimate struct {
 	HumanReadable string  `json:"human_readable"`
 }
 
-// Output is the JSON document emitted on stdout when --json is set, and
+// Error is the structured failure shape emitted in JSON mode when the CLI
+// cannot produce a credential. Adding this field is additive and stays
+// within schema-v1: pre-existing consumers that ignore unknown fields are
+// unaffected.
+//
+// Code is a stable, versioned string identifier (E_INVALID_ARGS,
+// E_ENTROPY_TOO_LOW, E_RNG_FAILURE, E_CHARSET_EMPTY, E_CLASS_IMPOSSIBLE).
+// Agents should branch on Code rather than parsing Message, which is
+// English prose intended for human consumption. Hint is a one-line
+// remediation suggestion in the same prose register as Message; consumers
+// are free to ignore it.
+type Error struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Hint    string `json:"hint,omitempty"`
+}
+
+// Output is the JSON document emitted on stdout when --json is set. It is
 // also the basis (with the password redacted) for an audit-log entry.
+//
+// On the success path Error is nil and Password/Length/CharsetID/etc. are
+// populated. On the failure path Error is populated and Password is empty;
+// the build-identity fields (Version, Commit, BuildDate, RequestID,
+// TimestampUTC, Subcommand) are always set so consumers can correlate the
+// failure with a specific binary version and an audit log entry.
 type Output struct {
 	SchemaVersion      int                 `json:"schema_version"`
 	Password           string              `json:"password,omitempty"`
-	Length             int                 `json:"length"`
-	CharsetID          string              `json:"charset_id"`
-	CharsetSize        int                 `json:"charset_size"`
-	EntropyBits        float64             `json:"entropy_bits"`
-	ExcludedCount      int                 `json:"excluded_count"`
+	Length             int                 `json:"length,omitempty"`
+	CharsetID          string              `json:"charset_id,omitempty"`
+	CharsetSize        int                 `json:"charset_size,omitempty"`
+	EntropyBits        float64             `json:"entropy_bits,omitempty"`
+	ExcludedCount      int                 `json:"excluded_count,omitempty"`
 	ExcludedSHA256     string              `json:"excluded_sha256,omitempty"`
 	RequiredClasses    string              `json:"required_classes,omitempty"`
-	Algorithm          string              `json:"algorithm"`
+	Algorithm          string              `json:"algorithm,omitempty"`
 	Subcommand         string              `json:"subcommand"`
 	Version            string              `json:"version"`
 	Commit             string              `json:"commit"`
@@ -41,6 +64,7 @@ type Output struct {
 	TimestampUTC       string              `json:"timestamp_utc"`
 	Warnings           []string            `json:"warnings,omitempty"`
 	CrackTimeEstimates []CrackTimeEstimate `json:"crack_time_estimates,omitempty"`
+	Error              *Error              `json:"error,omitempty"`
 }
 
 // LogEntry is the redacted form written to the audit log file. It is

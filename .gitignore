@@ -4,3 +4,6 @@
 *.out
 *.cov
 .DS_Store
+
+# Built binaries (never commit)
+cmd/secretgenerator/secretgenerator
