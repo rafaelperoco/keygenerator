@@ -1,0 +1,211 @@
+---
+import Base from "../layouts/Base.astro";
+import Generator from "../components/Generator.tsx";
+import { SUBCOMMANDS, type SubcommandPage } from "../data/subcommands";
+
+export function getStaticPaths() {
+  return SUBCOMMANDS.map((s) => ({ params: { slug: s.slug }, props: { entry: s } }));
+}
+
+interface Props {
+  entry: SubcommandPage;
+}
+
+const { entry } = Astro.props;
+const ghRepo = "https://github.com/rafaelperoco/secretgenerator";
+const version = "v2.0.0";
+const otherEntries = SUBCOMMANDS.filter((s) => s.slug !== entry.slug);
+---
+
+<Base
+  title={entry.title}
+  description={entry.metaDescription}
+  path={`/${entry.slug}/`}
+>
+  <header
+    class="border-b border-[var(--color-line)] sticky top-0 backdrop-blur bg-[color-mix(in_oklab,var(--color-bg),transparent_40%)] z-10"
+  >
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 h-12 flex items-center gap-3">
+      <a
+        href="/"
+        class="flex items-center gap-2 font-semibold tracking-tight text-sm sm:text-base"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          aria-hidden="true"
+          class="shrink-0"
+        >
+          <rect
+            x="0.5"
+            y="0.5"
+            width="13"
+            height="13"
+            rx="2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1"
+          />
+          <rect x="3.5" y="3.5" width="7" height="7" fill="currentColor" />
+        </svg>
+        secretgenerator
+      </a>
+      <span class="font-mono text-[10px] sm:text-xs text-[var(--color-mute)]"
+        >{version}</span
+      >
+      <span class="ml-auto"></span>
+      <nav
+        class="hidden md:flex items-center gap-5 text-sm text-[var(--color-mute)]"
+      >
+        <a class="hover:text-[var(--color-fg)] transition" href="/">home</a>
+        <a class="hover:text-[var(--color-fg)] transition" href="/password/">password</a>
+        <a class="hover:text-[var(--color-fg)] transition" href="/passphrase/">passphrase</a>
+        <a class="hover:text-[var(--color-fg)] transition" href="/secret/">secret</a>
+        <a class="hover:text-[var(--color-fg)] transition" href="/api-key/">api key</a>
+        <a class="hover:text-[var(--color-fg)] transition" href="/pin/">pin</a>
+        <a
+          class="hover:text-[var(--color-fg)] transition"
+          href={ghRepo}
+          target="_blank"
+          rel="noopener">↗ source</a
+        >
+      </nav>
+      <a
+        class="md:hidden text-xs text-[var(--color-mute)] hover:text-[var(--color-fg)] transition"
+        href={ghRepo}
+        target="_blank"
+        rel="noopener"
+        aria-label="GitHub repository">↗ github</a
+      >
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-16">
+    <p class="text-[10px] sm:text-xs font-mono text-[var(--color-mute)] mb-3">
+      <a class="hover:text-[var(--color-fg)] transition" href="/">home</a>
+      <span class="mx-1">/</span>
+      <span class="text-[var(--color-fg)]">{entry.slug}</span>
+    </p>
+
+    <header class="max-w-3xl mb-10 sm:mb-12">
+      <p class="text-[10px] sm:text-xs font-mono text-[var(--color-accent)] mb-2 uppercase tracking-wider">
+        secretgenerator · {entry.slug}
+      </p>
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight leading-[1.05] mb-4">
+        {entry.h1}
+      </h1>
+      <p class="text-base sm:text-lg text-[var(--color-mute)]">{entry.intro}</p>
+    </header>
+
+    {/* Defaults table */}
+    <section class="mb-10 sm:mb-14">
+      <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] mb-3">
+        defaults
+      </h2>
+      <div class="border border-[var(--color-line)] rounded-lg overflow-hidden bg-[var(--color-panel)]">
+        <table class="w-full text-sm font-mono">
+          <tbody>
+            {entry.defaults.map((d, i) => (
+              <tr class={i === entry.defaults.length - 1 ? "" : "border-b border-[var(--color-line)]"}>
+                <td class="px-4 py-2 text-[var(--color-mute)] w-1/3">{d.name}</td>
+                <td class="px-4 py-2">{d.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* Live generator preselected */}
+    <section id="generate" class="mb-12 sm:mb-16 scroll-mt-16">
+      <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-2 mb-4">
+        <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--color-mute)]">
+          generate
+        </h2>
+        <span class="text-[10px] font-mono text-[var(--color-mute)]">
+          runs in your browser · WebAssembly · same code as the CLI
+        </span>
+      </div>
+      <Generator client:only="react" initial={entry.generatorId} />
+    </section>
+
+    {/* CLI examples */}
+    <section class="mb-12 sm:mb-16">
+      <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] mb-3">
+        cli
+      </h2>
+      <div class="grid gap-3">
+        {entry.cliExamples.map((ex) => (
+          <div class="border border-[var(--color-line)] rounded-lg p-4 bg-[var(--color-panel)] min-w-0">
+            <div class="text-xs font-mono text-[var(--color-mute)] mb-2">{ex.label}</div>
+            <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto max-w-full">{ex.cmd}</pre>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    {/* Code snippets */}
+    <section class="mb-12 sm:mb-16">
+      <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] mb-3">
+        snippets
+      </h2>
+      <div class="grid gap-3">
+        {entry.snippets.map((sn) => (
+          <div class="border border-[var(--color-line)] rounded-lg overflow-hidden bg-[var(--color-panel)] min-w-0">
+            <div class="flex items-center justify-between px-4 py-2 border-b border-[var(--color-line)]">
+              <span class="text-xs font-mono text-[var(--color-fg)]">{sn.language}</span>
+              <span class="text-[10px] font-mono text-[var(--color-mute)]">{sn.filename}</span>
+            </div>
+            <pre class="font-mono text-[11px] sm:text-[12px] whitespace-pre-wrap break-all sm:break-normal sm:whitespace-pre sm:overflow-x-auto px-4 py-3 max-w-full">{sn.code}</pre>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    {/* FAQ */}
+    <section class="mb-12 sm:mb-16">
+      <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] mb-3">
+        faq
+      </h2>
+      <div class="grid gap-4">
+        {entry.faq.map((f) => (
+          <details class="border border-[var(--color-line)] rounded-lg p-4 bg-[var(--color-panel)] group">
+            <summary class="cursor-pointer text-sm font-medium tracking-tight">
+              {f.q}
+            </summary>
+            <p class="text-sm text-[var(--color-mute)] mt-3 leading-relaxed">{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    {/* Cross-link to other subcommands */}
+    <section class="mb-8">
+      <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] mb-3">
+        related
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {otherEntries.map((o) => (
+          <a
+            href={`/${o.slug}/`}
+            class="border border-[var(--color-line)] rounded-md px-3 py-2 text-sm font-mono hover:border-[var(--color-fg)] hover:text-[var(--color-fg)] text-[var(--color-mute)] transition"
+          >
+            ↗ {o.slug}
+          </a>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-line)] mt-16 sm:mt-24">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8 flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-[var(--color-mute)]">
+      <span>generation runs in your shell. we never see your secrets.</span>
+      <span class="ml-auto"></span>
+      <a class="hover:text-[var(--color-fg)] transition" href={`${ghRepo}/blob/main/SECURITY.md`} target="_blank" rel="noopener">security</a>
+      <a class="hover:text-[var(--color-fg)] transition" href={`${ghRepo}/blob/main/docs/CRYPTO.md`} target="_blank" rel="noopener">crypto</a>
+      <a class="hover:text-[var(--color-fg)] transition" href={`${ghRepo}/blob/main/CHANGELOG.md`} target="_blank" rel="noopener">changelog</a>
+      <a class="hover:text-[var(--color-fg)] transition" href={ghRepo} target="_blank" rel="noopener">↗ github</a>
+    </div>
+  </footer>
+</Base>

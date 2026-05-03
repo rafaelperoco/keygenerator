@@ -62,8 +62,13 @@ const SUBCOMMAND_HINT: Record<Subcommand, string> = {
   pin: "6 digits, ~20 bits — PINs are intrinsically weak; safe only with rate-limited verifiers",
 };
 
-export default function Generator() {
-  const [active, setActive] = useState<Subcommand>("password");
+export type GeneratorProps = {
+  /** Subcommand selected when the component mounts. Defaults to "password". */
+  initial?: Subcommand;
+};
+
+export default function Generator({ initial = "password" }: GeneratorProps) {
+  const [active, setActive] = useState<Subcommand>(initial);
   const [state, setState] = useState<State>({ kind: "loading" });
   const [copied, setCopied] = useState<"password" | "json" | null>(null);
   const [profiles, setProfiles] = useState<AttackerProfile[]>([]);
