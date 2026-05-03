@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `--help-json` persistent flag (root + every subcommand). Emits a
+  machine-readable JSON description of the command, its flags (name,
+  type, default, description, shorthand), inherited global flags, and
+  recursive subcommand tree. Defaults are returned as native JSON types
+  (boolean, integer, number, string) rather than stringified — agents
+  doing strict type checking can rely on the shape directly. The output
+  follows an OpenAPI-parameter-like layout so any agent already familiar
+  with OpenAPI introspects without learning a new schema. Versioned
+  independently of the credential output schema via
+  `help_json_schema_version`.
 - Structured error output in `--json` mode. When generation fails, the CLI
   emits a schema-v1 envelope with a populated `error` object containing a
   stable `code` (`E_INVALID_ARGS`, `E_ENTROPY_TOO_LOW`, `E_RNG_FAILURE`,

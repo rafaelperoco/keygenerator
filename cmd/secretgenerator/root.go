@@ -47,11 +47,22 @@ func newRootCmd() *cobra.Command {
 		Long:          longDescription(),
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(_ *cobra.Command, _ []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			if helpJSONRequested(cmd) {
+				return emitHelpJSON(cmd.OutOrStdout(), cmd)
+			}
 			return runPassword(*opts)
 		},
 	}
 	addPasswordFlags(root, opts)
+
+	// Persistent --help-json flag and the pre-run interceptor that emits
+	// the JSON dump for any subcommand. The flag is intentionally not
+	// added to addCommonFlags because that would also wire it on cobra's
+	// internal `help` command, which we keep out of the schema.
+	var helpJSONFlag bool
+	root.PersistentFlags().BoolVar(&helpJSONFlag, "help-json", false,
+		"emit a machine-readable JSON description of this command and its flags, then exit")
 
 	root.AddCommand(newPasswordCmd())
 	root.AddCommand(newSecretCmd())
@@ -60,7 +71,34 @@ func newRootCmd() *cobra.Command {
 	root.AddCommand(newEntropyCmd())
 	root.AddCommand(newPassphraseCmd())
 
+	// PersistentPreRunE fires before the subcommand RunE; the help-json
+	// path short-circuits there so subcommands never need to know about
+	// the flag.
+	root.PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
+		if helpJSONRequested(cmd) {
+			if err := emitHelpJSON(cmd.OutOrStdout(), cmd); err != nil {
+				return fail(ExitInvalidArgs, err)
+			}
+			// Returning a sentinel here would still trigger the
+			// subcommand's RunE under cobra, so we instead set the
+			// subcommand's RunE to a no-op via a per-cmd guard.
+			cmd.RunE = func(*cobra.Command, []string) error { return nil }
+		}
+		return nil
+	}
+
 	return root
+}
+
+// helpJSONRequested reads the --help-json flag from any command in the
+// tree (it is persistent on the root). Returns false if the flag is
+// missing or could not be parsed.
+func helpJSONRequested(cmd *cobra.Command) bool {
+	v, err := cmd.Flags().GetBool("help-json")
+	if err != nil {
+		return false
+	}
+	return v
 }
 
 func newPasswordCmd() *cobra.Command {

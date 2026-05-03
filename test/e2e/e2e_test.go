@@ -354,6 +354,53 @@ func TestE2E_SecretEncodings(t *testing.T) {
 	}
 }
 
+// TestE2E_HelpJSON verifies that --help-json on the root and each
+// subcommand returns valid JSON describing flags, types, defaults, and
+// the command tree, suitable for agent introspection without parsing the
+// human-readable --help.
+func TestE2E_HelpJSON(t *testing.T) {
+	t.Run("root", func(t *testing.T) {
+		stdout, stderr, code := runKeygen(t, "--help-json")
+		if code != exitOK {
+			t.Fatalf("exit=%d stderr=%q", code, stderr)
+		}
+		var doc map[string]any
+		if err := json.Unmarshal([]byte(stdout), &doc); err != nil {
+			t.Fatalf("decode: %v\n%s", err, stdout)
+		}
+		if doc["help_json_schema_version"] != float64(1) {
+			t.Errorf("help_json_schema_version = %v", doc["help_json_schema_version"])
+		}
+		if doc["name"] != "secretgenerator" {
+			t.Errorf("name = %v", doc["name"])
+		}
+		subs, _ := doc["subcommands"].([]any)
+		if len(subs) < 6 {
+			t.Errorf("expected at least 6 subcommands, got %d", len(subs))
+		}
+	})
+
+	for _, sub := range []string{"password", "passphrase", "secret", "api-key", "pin", "entropy"} {
+		t.Run(sub, func(t *testing.T) {
+			stdout, stderr, code := runKeygen(t, sub, "--help-json")
+			if code != exitOK {
+				t.Fatalf("exit=%d stderr=%q", code, stderr)
+			}
+			var doc map[string]any
+			if err := json.Unmarshal([]byte(stdout), &doc); err != nil {
+				t.Fatalf("decode: %v\n%s", err, stdout)
+			}
+			if doc["name"] != sub {
+				t.Errorf("name = %v, want %s", doc["name"], sub)
+			}
+			flags, _ := doc["flags"].([]any)
+			if len(flags) == 0 {
+				t.Errorf("expected flags array on %s, got empty", sub)
+			}
+		})
+	}
+}
+
 // TestE2E_StructuredErrorsInJSON verifies that every error path emits a
 // schema-v1 JSON envelope with a populated Error field when --json is set,
 // rather than plain prose on stderr. Agents branch on the stable string
