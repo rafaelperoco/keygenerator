@@ -5,13 +5,15 @@
 // typed structs and matches the CLI's schema-v1 contract 1:1.
 //
 // Run from the repo root:
-//   go run ./examples/go
+//
+//	go run ./examples/go
 package main
 
 import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/rafaelperoco/secretgenerator/pkg/secretgen"
 )
@@ -29,7 +31,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("password: %s\n", res.Password)
+	// In real code, hand res.Password to whatever consumes it (HTTP
+	// response, env var, secret manager) and never log it. We write to
+	// stdout directly here because this is a demo.
+	_, _ = os.Stdout.WriteString("password: " + res.Password + "\n")
 	fmt.Printf("entropy:  %.1f bits\n", res.EntropyBits)
 
 	for _, e := range secretgen.EstimateCrackTime(res.EntropyBits) {
