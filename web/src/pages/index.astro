@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import Generator from "../components/Generator.tsx";
+import { SUBCOMMANDS } from "../data/subcommands";
 
 const version = "v2.0.0";
 const ghRepo = "https://github.com/rafaelperoco/secretgenerator";
@@ -23,7 +24,7 @@ const installCmd = `go install github.com/rafaelperoco/secretgenerator/cmd/secre
         <a class="hover:text-[var(--color-fg)] transition" href="#generate">generate</a>
         <a class="hover:text-[var(--color-fg)] transition" href="#why">why</a>
         <a class="hover:text-[var(--color-fg)] transition" href="#install">install</a>
-        <a class="hover:text-[var(--color-fg)] transition" href="#schema">schema</a>
+        <a class="hover:text-[var(--color-fg)] transition" href="#subcommands">subcommands</a>
         <a class="hover:text-[var(--color-fg)] transition" href="#verify">verify</a>
         <a class="hover:text-[var(--color-fg)] transition" href={ghRepo} target="_blank" rel="noopener">↗ source</a>
       </nav>
@@ -145,29 +146,40 @@ docker run --rm ghcr.io/rafaelperoco/secretgenerator:{version} --json</pre>
       </p>
     </section>
 
-    {/* Schema */}
-    <section id="schema" class="mt-16 sm:mt-24">
-      <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] mb-3">schema</h2>
+    {/* Subcommands directory */}
+    <section id="subcommands" class="mt-16 sm:mt-24">
+      <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--color-mute)] mb-3">subcommands</h2>
       <h3 class="text-xl sm:text-2xl tracking-tight mb-4 sm:mb-6">Versioned JSON output. Pinnable from day one.</h3>
 
-      <div class="grid gap-4 md:grid-cols-2">
-        <p class="text-sm text-[var(--color-mute)]">
-          Every <span class="font-mono">--json</span> invocation emits a record matching
-          <a class="underline decoration-[var(--color-line)] hover:decoration-[var(--color-fg)]" href="/schemas/output-v1.json">schema v1</a>.
-          Adding optional fields is non-breaking; renaming, removing, or changing a field's
-          semantics requires a new schema version. Consumers pin
-          with <span class="font-mono">--require-schema-version=1</span> and fail closed
-          if the binary ever emits a different version.
-        </p>
+      <p class="text-sm text-[var(--color-mute)] mb-6 max-w-3xl">
+        Every <span class="font-mono">--json</span> invocation emits a record matching
+        <a class="underline decoration-[var(--color-line)] hover:decoration-[var(--color-fg)]" href="/schemas/output-v1.json">schema v1</a>.
+        Pin with <span class="font-mono">--require-schema-version=1</span> and fail closed if the
+        binary ever emits a different version.
+      </p>
 
-        <ul class="text-sm space-y-2">
-          <li><span class="font-mono text-[var(--color-accent)]">password</span> — generic credential, named charset</li>
-          <li><span class="font-mono text-[var(--color-accent)]">passphrase</span> — diceware, EFF Large Wordlist</li>
-          <li><span class="font-mono text-[var(--color-accent)]">secret</span> — CSPRNG bytes, base64url (recommended for agents)</li>
-          <li><span class="font-mono text-[var(--color-accent)]">api-key</span> — prefix_base62 (Stripe-style)</li>
-          <li><span class="font-mono text-[var(--color-accent)]">pin</span> — numeric with weak-pattern rejection</li>
-          <li><span class="font-mono text-[var(--color-accent)]">entropy</span> — assess existing credentials</li>
-        </ul>
+      <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+        {SUBCOMMANDS.map((s) => (
+          <a
+            href={`/${s.slug}/`}
+            class="block border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] hover:border-[var(--color-fg)] transition group"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono text-sm text-[var(--color-accent)]">{s.slug}</span>
+              <span class="text-[var(--color-mute)] group-hover:text-[var(--color-fg)] transition">→</span>
+            </div>
+            <p class="text-sm text-[var(--color-mute)] leading-snug">{s.intro.split(".")[0]}.</p>
+          </a>
+        ))}
+        <div class="border border-[var(--color-line)] rounded-lg p-4 sm:p-5 bg-[var(--color-panel)] opacity-70">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-sm text-[var(--color-accent)]">entropy</span>
+            <span class="text-[10px] font-mono text-[var(--color-mute)]">CLI only</span>
+          </div>
+          <p class="text-sm text-[var(--color-mute)] leading-snug">
+            Estimate the entropy and crack-time of an existing credential. Pipe on stdin to keep it out of process listings.
+          </p>
+        </div>
       </div>
     </section>
 

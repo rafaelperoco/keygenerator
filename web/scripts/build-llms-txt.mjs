@@ -160,7 +160,9 @@ Current release: ${VERSION}. Site: ${SITE}. Source: ${REPO}.
 
 ${SUBCOMMANDS.map(
   (s) =>
-    `- [${s}](${SITE}/#install): \`secretgenerator ${s} --json\` — see ${REPO}/blob/main/docs/SUBCOMMANDS.md#${s}`
+    s === "entropy"
+      ? `- [${s}](${REPO}/blob/main/docs/SUBCOMMANDS.md#${s}): \`secretgenerator ${s} --json\` — assess existing credentials (CLI only)`
+      : `- [${s}](${SITE}/${s}/): \`secretgenerator ${s} --json\` — dedicated page with live generator, defaults, snippets, and FAQ`
 ).join("\n")}
 
 ## Output schema
