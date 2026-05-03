@@ -80,14 +80,15 @@ Full flag reference: [docs/SUBCOMMANDS.md](docs/SUBCOMMANDS.md).
 
 ## Install
 
-| Method                 | Command                                                                         |
-| ---------------------- | ------------------------------------------------------------------------------- |
-| **npm (zero-install)** | `npx -y @secretgenerator/cli`                                                   |
-| **Homebrew**           | `brew install rafaelperoco/tap/secretgenerator`                                 |
-| **MCP server**         | `npx -y @secretgenerator/mcp`                                                   |
-| **Container**          | `docker run --rm ghcr.io/rafaelperoco/secretgenerator:v2.0.0`                   |
-| **Go install**         | `go install github.com/rafaelperoco/secretgenerator/cmd/secretgenerator@v2.0.0` |
-| **Verified manual**    | See [verified install](#verified-install) below.                                |
+| Method                 | Command                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| **npm (zero-install)** | `npx -y @secretgenerator/cli`                                                     |
+| **Homebrew**           | `brew install rafaelperoco/tap/secretgenerator`                                   |
+| **MCP server**         | `npx -y @secretgenerator/mcp`                                                     |
+| **Container**          | `docker run --rm ghcr.io/rafaelperoco/secretgenerator:v2.0.0`                     |
+| **Go install**         | `go install github.com/rafaelperoco/secretgenerator/cmd/secretgenerator@v2.0.0`   |
+| **GitHub Actions**     | `uses: rafaelperoco/secretgenerator/.github/actions/setup-secretgenerator@v2.0.0` |
+| **Verified manual**    | See [verified install](#verified-install) below.                                  |
 
 ### Verified install
 
