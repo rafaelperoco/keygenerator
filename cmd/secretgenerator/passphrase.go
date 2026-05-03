@@ -89,18 +89,19 @@ entropy at the seam) and works in shells, URLs, env files, and JSON.`,
 }
 
 func runPassphrase(o passphraseOptions) error {
+	e := errCtx{c: o.commonOpts, subcommand: "passphrase"}
 	if o.StdinParams {
 		req, err := readStdinPassphraseParams(o.stdin)
 		if err != nil {
-			return fail(ExitInvalidArgs, err)
+			return e.fail(ExitInvalidArgs, err)
 		}
 		applyStdinPassphrase(&o, req)
 	}
 	if o.Words <= 0 {
-		return fail(ExitInvalidArgs, fmt.Errorf("words must be > 0, got %d", o.Words))
+		return e.fail(ExitInvalidArgs, fmt.Errorf("words must be > 0, got %d", o.Words))
 	}
 	if o.Separator == "" {
-		return fail(ExitInvalidArgs,
+		return e.fail(ExitInvalidArgs,
 			fmt.Errorf("separator must not be empty (without a separator, adjacent words can fuse, leaking entropy at boundaries)"))
 	}
 
@@ -113,7 +114,7 @@ func runPassphrase(o passphraseOptions) error {
 
 	var warnings []string
 	if err := policy.EnforceFloor(bits, o.MinEntropyBits, o.AllowWeak); err != nil {
-		return fail(ExitEntropyTooLow, err)
+		return e.fail(ExitEntropyTooLow, err)
 	}
 	if o.MinEntropyBits > 0 && bits < o.MinEntropyBits && o.AllowWeak {
 		warnings = append(warnings,
@@ -130,7 +131,7 @@ func runPassphrase(o passphraseOptions) error {
 
 	picked, err := words.PickEFFLarge(o.Words, nil)
 	if err != nil {
-		return fail(ExitRNGFailure, err)
+		return e.fail(ExitRNGFailure, err)
 	}
 	if o.Capitalize {
 		for i, w := range picked {
@@ -141,7 +142,7 @@ func runPassphrase(o passphraseOptions) error {
 	if o.DigitSuffix {
 		d, err := pickDigit()
 		if err != nil {
-			return fail(ExitRNGFailure, err)
+			return e.fail(ExitRNGFailure, err)
 		}
 		phrase += d
 	}
@@ -155,7 +156,7 @@ func runPassphrase(o passphraseOptions) error {
 		Subcommand:  "passphrase",
 		Warnings:    warnings,
 	}
-	return emit(o.commonOpts, out, phrase)
+	return emit(e, out, phrase)
 }
 
 func capitalizeFirst(s string) string {

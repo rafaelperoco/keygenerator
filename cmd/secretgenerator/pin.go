@@ -69,25 +69,26 @@ limits (banking, hardware tokens) — never as a primary authenticator.`,
 }
 
 func runPIN(o pinOptions) error {
+	e := errCtx{c: o.commonOpts, subcommand: "pin"}
 	if o.StdinParams {
 		req, err := readStdinPINParams(o.stdin)
 		if err != nil {
-			return fail(ExitInvalidArgs, err)
+			return e.fail(ExitInvalidArgs, err)
 		}
 		applyStdinPIN(&o, req)
 	}
 	if o.Digits < 4 {
-		return fail(ExitInvalidArgs, fmt.Errorf("digits must be >= 4, got %d", o.Digits))
+		return e.fail(ExitInvalidArgs, fmt.Errorf("digits must be >= 4, got %d", o.Digits))
 	}
 	if !o.AcknowledgeLowEntropy {
-		return fail(ExitEntropyTooLow,
+		return e.fail(ExitEntropyTooLow,
 			fmt.Errorf("PIN generation requires --acknowledge-low-entropy (PINs carry %0.1f bits, far below any password floor)",
 				policy.EntropyBits(o.Digits, 10)))
 	}
 
 	cs, err := charset.Get("digit-v1")
 	if err != nil {
-		return fail(ExitRNGFailure, err)
+		return e.fail(ExitRNGFailure, err)
 	}
 
 	var pin string
@@ -97,14 +98,14 @@ func runPIN(o pinOptions) error {
 			Length:  o.Digits,
 		})
 		if gerr != nil {
-			return fail(ExitRNGFailure, gerr)
+			return e.fail(ExitRNGFailure, gerr)
 		}
 		if o.AllowWeakPattern || !policy.IsWeakPIN(candidate) {
 			pin = candidate
 			break
 		}
 		if attempt == MaxPINRejectionRetries-1 {
-			return fail(ExitRNGFailure,
+			return e.fail(ExitRNGFailure,
 				fmt.Errorf("could not produce a strong-pattern PIN after %d attempts", MaxPINRejectionRetries))
 		}
 	}
@@ -121,7 +122,7 @@ func runPIN(o pinOptions) error {
 			fmt.Sprintf("PIN entropy is %.1f bits; safe only with verifier-side rate limiting", bits),
 		},
 	}
-	return emit(o.commonOpts, out, pin)
+	return emit(e, out, pin)
 }
 
 func readStdinPINParams(r io.Reader) (stdinPINRequest, error) {

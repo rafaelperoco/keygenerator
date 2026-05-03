@@ -111,6 +111,33 @@
           "human_readable": { "type": "string" }
         }
       }
+    },
+    "error": {
+      "description": "Present only on the failure path when --json is set. Successful generations omit this field. The CLI exits with the integer exit code corresponding to the string code; agents should branch on the string code, which is stable across exit-code reshuffles. When error is present, the password / length / charset_id / charset_size / entropy_bits / algorithm fields are typically absent (the credential was not produced); the build-identity fields (subcommand, version, commit, build_date, request_id, timestamp_utc) remain populated for audit correlation.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "description": "Stable string identifier. Agents should branch on this rather than parse the message.",
+          "type": "string",
+          "enum": [
+            "E_INVALID_ARGS",
+            "E_ENTROPY_TOO_LOW",
+            "E_RNG_FAILURE",
+            "E_CHARSET_EMPTY",
+            "E_CLASS_IMPOSSIBLE"
+          ]
+        },
+        "message": {
+          "description": "English prose describing the failure. Intended for human consumption; not stable.",
+          "type": "string"
+        },
+        "hint": {
+          "description": "One-line remediation suggestion. May be empty if no curated hint is registered for the code.",
+          "type": "string"
+        }
+      }
     }
   }
 }

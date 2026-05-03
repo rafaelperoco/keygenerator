@@ -51,6 +51,7 @@ schema version.
 | `required_classes`     | string  | Comma-separated list of character classes the output is guaranteed to contain (or, for `entropy`, observed in the input).                  |
 | `warnings`             | array   | Strings describing non-fatal advisories (e.g. when `--allow-weak` bypassed the floor or when a compatibility flag was used).               |
 | `crack_time_estimates` | array   | Opt-in (set with `--show-crack-time`). Time-to-break estimates under named attacker profiles.                                              |
+| `error`                | object  | Present only on the failure path. Carries a stable `code` (e.g. `E_ENTROPY_TOO_LOW`), an English `message`, and an optional curated `hint`. |
 
 ### Audit log additions
 
@@ -94,6 +95,44 @@ requires bumping the suffix. The five profiles span 13 orders of magnitude:
 These are estimates. Real-world cracking depends on the specific KDF, the
 size of the search space the attacker actually explores (dictionaries vs.
 brute force), and hardware availability.
+
+## error (failure path)
+
+When `--json` is set and the requested generation cannot be produced, the
+CLI writes a schema-v1 envelope with a populated `error` object to stdout
+and exits with the matching integer code. Stderr is silent in JSON mode so
+agents see exactly one machine-readable artifact.
+
+Codes are stable strings; agents should branch on these rather than parse
+the message or rely on integer exit codes:
+
+| code                  | exit | meaning                                                                                              |
+| --------------------- | ---: | ---------------------------------------------------------------------------------------------------- |
+| `E_INVALID_ARGS`      |    2 | Unknown flag, unknown charset, schema-version mismatch, audit-log write failure, malformed stdin     |
+| `E_ENTROPY_TOO_LOW`   |    3 | Computed entropy is below `--min-entropy-bits` and `--allow-weak` was not set                        |
+| `E_RNG_FAILURE`       |    4 | OS entropy source returned an error mid-generation                                                   |
+| `E_CHARSET_EMPTY`     |    5 | `--exclude` reduced the charset below the minimum 2 runes                                            |
+| `E_CLASS_IMPOSSIBLE`  |    6 | `--require-classes` cannot be satisfied (charset lacks the class, or length < class count)           |
+
+Each code has a curated one-line `hint` documenting the typical fix.
+Hints are advisory and may be empty for codes added in future versions.
+
+```json
+{
+  "schema_version": 1,
+  "subcommand": "password",
+  "version": "v2.0.0",
+  "commit": "abc1234",
+  "build_date": "2026-05-02T22:00:00Z",
+  "request_id": "8a7f...-...-...",
+  "timestamp_utc": "2026-05-02T22:01:33Z",
+  "error": {
+    "code": "E_ENTROPY_TOO_LOW",
+    "message": "policy: entropy below floor: 23.82 bits < floor 80.00",
+    "hint": "increase --length, choose a richer --charset, or pass --allow-weak (records a warning)"
+  }
+}
+```
 
 ## Example
 

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Structured error output in `--json` mode. When generation fails, the CLI
+  emits a schema-v1 envelope with a populated `error` object containing a
+  stable `code` (`E_INVALID_ARGS`, `E_ENTROPY_TOO_LOW`, `E_RNG_FAILURE`,
+  `E_CHARSET_EMPTY`, `E_CLASS_IMPOSSIBLE`), an English `message`, and an
+  optional curated `hint` with one-line remediation. Stderr stays silent
+  in JSON mode so agents see exactly one machine-readable artifact.
+  Plain mode (without `--json`) keeps the legacy stderr+exit-code
+  behavior unchanged.
+- `error` field added to `schemas/output-v1.json` (additive, non-breaking).
+- `audit.NewError` and the `Error` struct in `internal/audit` for
+  programmatic construction.
+- E2E coverage for every error path under `--json`.
+
 ## [2.0.0] — 2026-04-29
 
 This is a complete rewrite of secretgenerator into an auditable standard for

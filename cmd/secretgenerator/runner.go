@@ -51,16 +51,19 @@ func addCommonFlags(cmd *cobra.Command, o *commonOpts) {
 
 // emit stamps the audit envelope and writes the result. Each subcommand
 // constructs an audit.Output with its own subcommand-specific fields and
-// hands it here for finalization.
-func emit(c commonOpts, out audit.Output, password string) error {
+// hands it here for finalization. Errors emitted from inside emit() use
+// the supplied errCtx so they get the same structured-JSON treatment as
+// errors emitted from the validation path before emit() was called.
+func emit(e errCtx, out audit.Output, password string) error {
+	c := e.c
 	if c.RequireSchemaVersion != 0 && c.RequireSchemaVersion != audit.SchemaVersion {
-		return fail(ExitInvalidArgs, fmt.Errorf("require-schema-version=%d, but binary emits schema %d",
+		return e.fail(ExitInvalidArgs, fmt.Errorf("require-schema-version=%d, but binary emits schema %d",
 			c.RequireSchemaVersion, audit.SchemaVersion))
 	}
 
 	requestID, err := c.uuid()
 	if err != nil {
-		return fail(ExitRNGFailure, fmt.Errorf("request id: %w", err))
+		return e.fail(ExitRNGFailure, fmt.Errorf("request id: %w", err))
 	}
 	out.SchemaVersion = audit.SchemaVersion
 	out.Password = password
@@ -75,8 +78,8 @@ func emit(c commonOpts, out audit.Output, password string) error {
 
 	if c.AuditLogPath != "" {
 		entry := audit.LogFromOutput(out, audit.SHA256Hex(password))
-		if err := audit.AppendLog(c.AuditLogPath, entry); err != nil {
-			return fail(ExitInvalidArgs, err)
+		if appendErr := audit.AppendLog(c.AuditLogPath, entry); appendErr != nil {
+			return e.fail(ExitInvalidArgs, appendErr)
 		}
 	}
 
@@ -84,12 +87,56 @@ func emit(c commonOpts, out audit.Output, password string) error {
 		return writeJSON(c.stdout, out)
 	}
 	if _, err := fmt.Fprintln(c.stdout, password); err != nil {
-		return fail(ExitRNGFailure, err)
+		return e.fail(ExitRNGFailure, err)
 	}
 	if c.ShowCrackTime {
 		printCrackTime(c.stdout, out.EntropyBits)
 	}
 	return nil
+}
+
+// errCtx is the context a subcommand needs to emit a structured JSON
+// error envelope. Subcommands construct one near the top of their run
+// function (where commonOpts and the subcommand name are both in scope)
+// and call .fail(exitCode, err) instead of the global fail() in error
+// paths. In --json mode this writes a schema-v1 envelope to stdout;
+// otherwise it falls through to the legacy stderr behavior in main().
+type errCtx struct {
+	c          commonOpts
+	subcommand string
+}
+
+func (e errCtx) fail(exitCode int, err error) error {
+	if !e.c.JSON {
+		return fail(exitCode, err)
+	}
+	if err == nil {
+		return nil
+	}
+
+	requestID, idErr := e.c.uuid()
+	if idErr != nil {
+		// Fall back to a synthetic placeholder so the envelope is still
+		// well-formed; the agent can correlate via timestamp.
+		requestID = "00000000-0000-4000-8000-000000000000"
+	}
+
+	out := audit.Output{
+		SchemaVersion: audit.SchemaVersion,
+		Subcommand:    e.subcommand,
+		Version:       version,
+		Commit:        commit,
+		BuildDate:     buildDate,
+		RequestID:     requestID,
+		TimestampUTC:  e.c.now().Format(time.RFC3339Nano),
+		Error:         audit.NewError(exitToCode(exitCode), err.Error()),
+	}
+	if writeErr := writeJSON(e.c.stdout, out); writeErr != nil {
+		// If we cannot even write to stdout, fall back to legacy stderr
+		// so the agent at least gets *something*.
+		return fail(exitCode, err)
+	}
+	return failJSON(exitCode, err)
 }
 
 // projectCrackTimes converts policy.CrackTimeEstimate values into the

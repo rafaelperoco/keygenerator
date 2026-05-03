@@ -88,25 +88,40 @@ password (the caller already has it).`,
 }
 
 func runEntropy(o entropyOptions) error {
+	// Synthesize a minimal commonOpts-compatible context for error
+	// reporting, since entropy has its own option struct rather than
+	// embedding commonOpts.
+	e := errCtx{
+		c: commonOpts{
+			JSON:   o.JSON,
+			stdin:  o.stdin,
+			stdout: o.stdout,
+			stderr: o.stderr,
+			now:    o.now,
+			uuid:   o.uuid,
+		},
+		subcommand: "entropy",
+	}
+
 	if o.RequireSchemaVersion != 0 && o.RequireSchemaVersion != audit.SchemaVersion {
-		return fail(ExitInvalidArgs, fmt.Errorf("require-schema-version=%d, but binary emits schema %d",
+		return e.fail(ExitInvalidArgs, fmt.Errorf("require-schema-version=%d, but binary emits schema %d",
 			o.RequireSchemaVersion, audit.SchemaVersion))
 	}
 	if o.StdinParams {
 		req, err := readStdinEntropyParams(o.stdin)
 		if err != nil {
-			return fail(ExitInvalidArgs, err)
+			return e.fail(ExitInvalidArgs, err)
 		}
 		applyStdinEntropy(&o, req)
 	} else if o.Password == "" {
 		pw, err := readStdinPassword(o.stdin)
 		if err != nil {
-			return fail(ExitInvalidArgs, err)
+			return e.fail(ExitInvalidArgs, err)
 		}
 		o.Password = pw
 	}
 	if o.Password == "" {
-		return fail(ExitInvalidArgs, fmt.Errorf("entropy: empty password"))
+		return e.fail(ExitInvalidArgs, fmt.Errorf("entropy: empty password"))
 	}
 
 	classes := observeClasses(o.Password)
@@ -122,7 +137,7 @@ func runEntropy(o entropyOptions) error {
 	if o.JSON {
 		requestID, err := o.uuid()
 		if err != nil {
-			return fail(ExitRNGFailure, fmt.Errorf("request id: %w", err))
+			return e.fail(ExitRNGFailure, fmt.Errorf("request id: %w", err))
 		}
 		out := audit.Output{
 			SchemaVersion:   audit.SchemaVersion,
@@ -147,7 +162,7 @@ func runEntropy(o entropyOptions) error {
 	}
 
 	if _, err := fmt.Fprintf(o.stdout, "%.2f bits\n", bits); err != nil {
-		return fail(ExitRNGFailure, err)
+		return e.fail(ExitRNGFailure, err)
 	}
 	if o.ShowCrackTime {
 		printCrackTime(o.stdout, bits)
