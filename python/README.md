@@ -1,7 +1,7 @@
-# secretgenerator (Python)
+# secretgenerator-py (Python wrapper)
 
-[![pypi](https://img.shields.io/pypi/v/secretgenerator)](https://pypi.org/project/secretgenerator/)
-[![python](https://img.shields.io/pypi/pyversions/secretgenerator)](https://pypi.org/project/secretgenerator/)
+[![pypi](https://img.shields.io/pypi/v/secretgenerator-py)](https://pypi.org/project/secretgenerator-py/)
+[![python](https://img.shields.io/pypi/pyversions/secretgenerator-py)](https://pypi.org/project/secretgenerator-py/)
 
 Auditable random credential generator for AI agents and machine-readable
 pipelines. This Python package wraps the
@@ -13,8 +13,12 @@ and exposes its stable schema-v1 JSON output as Python dicts.
 The Python package and the CLI binary install separately:
 
 ```sh
-pip install secretgenerator
+pip install secretgenerator-py
 ```
+
+> The PyPI distribution is named `secretgenerator-py` (not `secretgenerator`)
+> because a `secret-generator` package already exists and PyPI fuzzy-matches
+> short variants. The import name is `secretgenerator_py`.
 
 Then install the CLI once with whichever method fits your environment:
 
@@ -29,7 +33,7 @@ go install github.com/rafaelperoco/secretgenerator/cmd/secretgenerator@latest
 ## Quick start
 
 ```python
-import secretgenerator as sg
+import secretgenerator_py as sg
 
 pw = sg.password(length=24, charset="alphanum-symbols-v1",
                  require_classes="lower,upper,digit,symbol")

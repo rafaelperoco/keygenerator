@@ -334,7 +334,7 @@ jobs:
   # Publishes the secretgenerator package to PyPI via trusted publishing
   # (OIDC, no API token). The first publish for a given project name
   # has to be done manually (see CONTRIBUTING.md); after that, configure
-  # https://pypi.org/manage/project/secretgenerator/settings/publishing/
+  # https://pypi.org/manage/project/secretgenerator-py/settings/publishing/
   # with workflow=release.yml and environment=pypi to authorize this job.
   pypi-publish:
     name: pypi publish
@@ -342,7 +342,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/secretgenerator
+      url: https://pypi.org/p/secretgenerator-py
     permissions:
       contents: read
       id-token: write
