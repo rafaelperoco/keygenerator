@@ -24,3 +24,12 @@ __pycache__/
 .pytest_cache/
 .venv/
 python/dist/
+
+# Web build artifacts that are regenerated at deploy time
+web/public/releases.xml
+web/public/og-image.png
+web/public/llms.txt
+web/public/llms-full.txt
+web/public/robots.txt
+web/public/keygen.wasm
+web/public/wasm_exec.js
