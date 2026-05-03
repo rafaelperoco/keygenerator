@@ -1,0 +1,53 @@
+{
+  "name": "@secretgenerator/cli",
+  "version": "2.0.0",
+  "description": "Zero-config installer for the secretgenerator CLI. Downloads the right binary for your OS/arch from a verified GitHub release, checks the SHA-256, and (when cosign is available) verifies the keyless Sigstore signature.",
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://secretgenerator.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafaelperoco/secretgenerator.git",
+    "directory": "cli"
+  },
+  "keywords": [
+    "secretgenerator",
+    "secret-generation",
+    "password-generator",
+    "csprng",
+    "cli",
+    "auditable",
+    "sigstore",
+    "slsa",
+    "cosign"
+  ],
+  "bin": {
+    "secretgenerator": "dist/run.js"
+  },
+  "main": "dist/run.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/run.js",
+    "prepack": "npm run build",
+    "postinstall": "node dist/install.js || echo 'secretgenerator: postinstall skipped (likely a tarball-only environment); run `npx secretgenerator --help` to retry'"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "os": [
+    "linux",
+    "darwin",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.0"
+  }
+}
