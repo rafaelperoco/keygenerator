@@ -330,3 +330,94 @@ jobs:
           else
             npm publish --access public
           fi
+
+  # Publishes the secretgenerator package to PyPI via trusted publishing
+  # (OIDC, no API token). The first publish for a given project name
+  # has to be done manually (see CONTRIBUTING.md); after that, configure
+  # https://pypi.org/manage/project/secretgenerator/settings/publishing/
+  # with workflow=release.yml and environment=pypi to authorize this job.
+  pypi-publish:
+    name: pypi publish
+    needs: [release]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/secretgenerator
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Sync package version to release tag
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${REF_NAME#v}"
+          # PEP 440: pre-releases use the form "2.0.0a1" or "2.0.0b2",
+          # not "2.0.0-alpha.1". Translate the goreleaser/semver form.
+          PEP440=$(echo "$VERSION" \
+            | sed -E 's/-alpha\.([0-9]+)/a\1/' \
+            | sed -E 's/-beta\.([0-9]+)/b\1/' \
+            | sed -E 's/-rc\.([0-9]+)/rc\1/')
+          python -c "import re,pathlib; p=pathlib.Path('pyproject.toml'); t=p.read_text(); t=re.sub(r'^version = \"[^\"]+\"', f'version = \"$PEP440\"', t, count=1, flags=re.M); p.write_text(t)"
+          grep '^version =' pyproject.toml
+
+      - name: Build sdist + wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Publish to PyPI (trusted publishing)
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+        with:
+          packages-dir: python/dist/
+
+  # Publishes the secretgenerator crate to crates.io. Requires
+  # CRATES_TOKEN (a crates.io API token with publish-update scope) to
+  # be configured as a repository secret. The first publish must be
+  # done manually with `cargo publish` to reserve the name; subsequent
+  # publishes ride this job.
+  crates-publish:
+    name: crates publish
+    needs: [release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: rust-crate
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Sync crate version to release tag
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${REF_NAME#v}"
+          python3 -c "import re,pathlib; p=pathlib.Path('Cargo.toml'); t=p.read_text(); t=re.sub(r'^version = \"[^\"]+\"', f'version = \"$VERSION\"', t, count=1, flags=re.M); p.write_text(t)"
+          grep '^version =' Cargo.toml
+
+      - name: Verify build
+        run: cargo build --verbose
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
+            echo "CRATES_TOKEN secret is not configured; skipping crates publish."
+            echo "Generate one at https://crates.io/settings/tokens with publish-update scope."
+            exit 0
+          fi
+          cargo publish --allow-dirty

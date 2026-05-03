@@ -106,6 +106,22 @@ provenance. Only repo maintainers can push tags.
 Pre-release alpha tags (`v2.0.0-alpha.N`) are used to validate the supply
 chain pipeline before any GA tag.
 
+### Package registries
+
+The release pipeline publishes to four registries on every tag. The
+maintainer setup is one-time:
+
+| Registry        | Mechanism                  | One-time setup                                                                                                                                                                                                                                        |
+| --------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ghcr.io         | `GITHUB_TOKEN` (built-in)  | none                                                                                                                                                                                                                                                  |
+| npm (cli + mcp) | `NPM_TOKEN` repo secret    | Generate at https://www.npmjs.com/settings/{user}/tokens (Granular, publish-only on the `@secretgenerator` scope)                                                                                                                                     |
+| Homebrew tap    | `HOMEBREW_TAP_TOKEN` PAT   | Fine-grained PAT with `Contents: write` on `rafaelperoco/homebrew-tap`                                                                                                                                                                                |
+| PyPI            | OIDC trusted publishing    | Configure at https://pypi.org/manage/project/secretgenerator/settings/publishing/ with workflow=`release.yml`, environment=`pypi`. The first publish must be done manually with `python -m build && twine upload dist/*` to reserve the project name. |
+| crates.io       | `CRATES_TOKEN` repo secret | Generate at https://crates.io/settings/tokens with publish-update scope. The first publish must be done manually with `cargo publish` to reserve the crate name.                                                                                      |
+
+When a token expires or is rotated, update the corresponding repo
+secret via `gh secret set <NAME> --repo rafaelperoco/secretgenerator`.
+
 ## Questions
 
 Open a [Discussions thread](https://github.com/rafaelperoco/secretgenerator/discussions)
