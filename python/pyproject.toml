@@ -3,9 +3,9 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "secretgenerator"
+name = "secretgenerator-py"
 version = "2.0.0"
-description = "Auditable random credential generator for AI agents and machine-readable pipelines."
+description = "Auditable random credential generator for AI agents and machine-readable pipelines (Python wrapper around the secretgenerator CLI)."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -44,7 +44,7 @@ Changelog = "https://github.com/rafaelperoco/secretgenerator/blob/main/CHANGELOG
 Issues = "https://github.com/rafaelperoco/secretgenerator/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/secretgenerator"]
+packages = ["src/secretgenerator_py"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src/", "tests/", "README.md", "LICENSE"]

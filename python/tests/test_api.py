@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-import secretgenerator as sg
+import secretgenerator_py as sg
 
 
 def test_password_returns_schema_v1() -> None:
