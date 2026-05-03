@@ -1,0 +1,158 @@
+name: Setup secretgenerator
+description: |
+  Install the auditable secretgenerator CLI on a runner and verify the
+  binary against its cosign signature and SHA-256 checksum. Supports
+  ubuntu, macos, and windows runners on amd64 and arm64.
+
+branding:
+  icon: lock
+  color: purple
+
+inputs:
+  version:
+    description: |
+      Release tag to install (e.g. "v2.0.0"). Use "latest" to follow the
+      latest non-prerelease tag.
+    required: false
+    default: latest
+  verify-cosign:
+    description: |
+      Whether to verify the cosign keyless signature on checksums.txt
+      before extracting the binary. Requires cosign on PATH; the action
+      installs it via sigstore/cosign-installer when missing.
+    required: false
+    default: "true"
+
+outputs:
+  version:
+    description: The resolved release tag (e.g. "v2.0.0").
+    value: ${{ steps.resolve.outputs.version }}
+  bin:
+    description: Absolute path to the installed secretgenerator binary.
+    value: ${{ steps.install.outputs.bin }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve version
+      id: resolve
+      shell: bash
+      env:
+        REQUESTED: ${{ inputs.version }}
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        if [ "$REQUESTED" = "latest" ]; then
+          # Skip prereleases so users on the default input never land on
+          # an alpha/beta tag.
+          version=$(gh release list \
+            --repo rafaelperoco/secretgenerator \
+            --exclude-pre-releases \
+            --exclude-drafts \
+            --limit 1 \
+            --json tagName \
+            --jq '.[0].tagName')
+        else
+          version="$REQUESTED"
+        fi
+        if [ -z "$version" ]; then
+          echo "::error::could not resolve secretgenerator version"
+          exit 1
+        fi
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "secretgenerator version: $version"
+
+    - name: Install cosign
+      if: inputs.verify-cosign == 'true'
+      uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+      with:
+        cosign-release: v2.4.1
+
+    - name: Download and verify
+      id: install
+      shell: bash
+      env:
+        VERSION: ${{ steps.resolve.outputs.version }}
+        VERIFY_COSIGN: ${{ inputs.verify-cosign }}
+      run: |
+        set -euo pipefail
+
+        # Map runner OS/arch to goreleaser archive naming.
+        case "$RUNNER_OS" in
+          Linux)   os=linux ;;
+          macOS)   os=darwin ;;
+          Windows) os=windows ;;
+          *) echo "::error::unsupported RUNNER_OS=$RUNNER_OS" >&2; exit 1 ;;
+        esac
+        case "$RUNNER_ARCH" in
+          X64)   arch=amd64 ;;
+          ARM64) arch=arm64 ;;
+          *) echo "::error::unsupported RUNNER_ARCH=$RUNNER_ARCH" >&2; exit 1 ;;
+        esac
+
+        # Strip leading "v" because goreleaser archives use bare semver.
+        ver_no_v="${VERSION#v}"
+
+        if [ "$os" = "windows" ]; then
+          archive="secretgenerator_${ver_no_v}_${os}_${arch}.zip"
+        else
+          archive="secretgenerator_${ver_no_v}_${os}_${arch}.tar.gz"
+        fi
+
+        base="https://github.com/rafaelperoco/secretgenerator/releases/download/${VERSION}"
+        workdir="${RUNNER_TEMP}/secretgenerator-${VERSION}"
+        mkdir -p "$workdir"
+        cd "$workdir"
+
+        echo "::group::Downloading artifacts"
+        curl --fail --show-error --silent --location -o "$archive"        "${base}/${archive}"
+        curl --fail --show-error --silent --location -o checksums.txt     "${base}/checksums.txt"
+        if [ "$VERIFY_COSIGN" = "true" ]; then
+          curl --fail --show-error --silent --location -o checksums.txt.sig "${base}/checksums.txt.sig"
+          curl --fail --show-error --silent --location -o checksums.txt.pem "${base}/checksums.txt.pem"
+        fi
+        echo "::endgroup::"
+
+        if [ "$VERIFY_COSIGN" = "true" ]; then
+          echo "::group::Verifying cosign keyless signature"
+          cosign verify-blob \
+            --certificate checksums.txt.pem \
+            --signature checksums.txt.sig \
+            --certificate-identity-regexp "^https://github.com/rafaelperoco/secretgenerator/.github/workflows/release.yml@refs/tags/v" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            checksums.txt
+          echo "::endgroup::"
+        fi
+
+        echo "::group::Verifying SHA-256 checksum"
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          shasum -a 256 -c checksums.txt --ignore-missing
+        elif [ "$RUNNER_OS" = "Windows" ]; then
+          # Windows runners ship git-bash with sha256sum.
+          sha256sum -c checksums.txt --ignore-missing
+        else
+          sha256sum -c checksums.txt --ignore-missing
+        fi
+        echo "::endgroup::"
+
+        echo "::group::Extracting"
+        if [ "$os" = "windows" ]; then
+          unzip -q "$archive"
+          binname=secretgenerator.exe
+        else
+          tar -xzf "$archive"
+          binname=secretgenerator
+        fi
+        bindir="${RUNNER_TOOL_CACHE}/secretgenerator/${ver_no_v}"
+        mkdir -p "$bindir"
+        mv "$binname" "$bindir/"
+        chmod +x "$bindir/$binname" 2>/dev/null || true
+        echo "$bindir" >> "$GITHUB_PATH"
+        echo "bin=${bindir}/${binname}" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
+
+        echo "::group::Smoke"
+        "$bindir/$binname" password --json --length 16 --charset alphanum-v1 --json --require-schema-version=1 \
+          | head -c 200
+        echo
+        echo "::endgroup::"
