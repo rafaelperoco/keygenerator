@@ -22,11 +22,19 @@ var ErrClassExhausted = errors.New("generator: could not satisfy required classe
 var ErrEntropyFailure = errors.New("generator: entropy source failure")
 
 // MaxClassRetries caps rejection sampling attempts when a class
-// requirement is hard to satisfy. The default of 100 is far above any
-// realistic need: for a length-12 alphanumeric password requiring all
-// 4 classes, the satisfaction probability is ~0.84, so the chance of
-// 100 consecutive rejections is on the order of 10^-83.
-const MaxClassRetries = 100
+// requirement is hard to satisfy.
+//
+// 1000 is sized for the worst realistic case: a 4-character string from
+// alphanum-symbols-v1 (94 runes) that must contain all 4 classes has
+// per-attempt acceptance ≈ 6.6% (4! × 26·26·10·32 / 94^4), so 1000
+// attempts give a false-failure probability of (1-0.066)^1000 ≈ 10^-30.
+// For typical configurations (length 12+, all 4 classes) the acceptance
+// rate is >0.8 and the cap is essentially never hit.
+//
+// The previous cap of 100 produced a one-in-a-thousand flake on the
+// 4-char-all-classes test, so the bump trades zero observable user
+// impact for deterministic CI.
+const MaxClassRetries = 1000
 
 // Request describes a single password generation request.
 type Request struct {

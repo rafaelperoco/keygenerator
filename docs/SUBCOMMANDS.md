@@ -23,6 +23,7 @@ All generation subcommands share these flags via `addCommonFlags`:
 | `--stdin-params`               | Read flags as a JSON object from stdin instead of argv. Avoids leaking sensitive flags to `ps(1)`. |
 | `--require-schema-version <n>` | Fail with exit code 2 unless the binary's output schema matches `<n>`.                             |
 | `--show-crack-time`            | Include `crack_time_estimates` in the JSON output and a human-readable summary in plain mode.      |
+| `--help-json`                  | Emit a machine-readable JSON description of the command and its flags, then exit. Persistent on the root, available on every subcommand. Output mirrors the OpenAPI parameter shape so agents already familiar with OpenAPI can introspect without learning a new schema. |
 
 ## Exit codes
 
