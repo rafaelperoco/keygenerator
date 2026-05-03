@@ -88,6 +88,8 @@ Full flag reference: [docs/SUBCOMMANDS.md](docs/SUBCOMMANDS.md).
 | **Container**          | `docker run --rm ghcr.io/rafaelperoco/secretgenerator:v2.0.0`                     |
 | **Go install**         | `go install github.com/rafaelperoco/secretgenerator/cmd/secretgenerator@v2.0.0`   |
 | **GitHub Actions**     | `uses: rafaelperoco/secretgenerator/.github/actions/setup-secretgenerator@v2.0.0` |
+| **Python (PyPI)**      | `pip install secretgenerator` (CLI binary installed separately)                   |
+| **Rust (crates.io)**   | `cargo add secretgenerator` (CLI binary installed separately)                     |
 | **Verified manual**    | See [verified install](#verified-install) below.                                  |
 
 ### Verified install

@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "secretgenerator"
+version = "2.0.0"
+description = "Auditable random credential generator for AI agents and machine-readable pipelines."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Rafael Peroco" }]
+keywords = [
+  "secret-generation",
+  "password-generator",
+  "csprng",
+  "auditable",
+  "sigstore",
+  "slsa",
+  "cosign",
+  "ai-agents",
+  "mcp",
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security",
+  "Topic :: Security :: Cryptography",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://secretgenerator.org"
+Documentation = "https://github.com/rafaelperoco/secretgenerator#readme"
+Repository = "https://github.com/rafaelperoco/secretgenerator"
+Changelog = "https://github.com/rafaelperoco/secretgenerator/blob/main/CHANGELOG.md"
+Issues = "https://github.com/rafaelperoco/secretgenerator/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/secretgenerator"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/", "tests/", "README.md", "LICENSE"]
