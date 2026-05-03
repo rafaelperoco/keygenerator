@@ -11,3 +11,15 @@ cmd/secretgenerator/secretgenerator
 # Rust example artifacts
 examples/rust/target/
 examples/rust/Cargo.lock
+
+# Rust crate artifacts
+rust-crate/target/
+rust-crate/Cargo.lock
+
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.venv/
